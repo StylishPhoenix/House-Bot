@@ -13,7 +13,8 @@ To use this bot, you will need to create a Discord bot account and obtain a toke
 Once you have the token, replace INSERT_TOKEN_HERE in the code with your token.
 
 You will also need to install the discord and interactions modules. You can do this using pip:
-```pip install discord interactions```Configuring the Bot
+```pip install discord interactions```
+# Configuring the Bot
 # House Names
 The bot is initialized with a dictionary of house points. You can modify this dictionary to add or remove houses or change the names of the houses.
 
