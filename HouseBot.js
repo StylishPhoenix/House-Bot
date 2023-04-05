@@ -8,10 +8,10 @@ const token = "INSERT_TOKEN_HERE";
 
 // Initialize house points. Change this depending on house names
 let house_points = {
-    'Necromancer': 0,
-    'Herbalist': 0,
-    'Mesmer': 0,
-    'Philosopher': 0
+    'Necromancer',
+    'Herbalist',
+    'Mesmer',
+    'Philosopher'
 };
 
 // Define slash commands to add and remove house points
