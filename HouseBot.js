@@ -5,6 +5,9 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const token = "INSERT_TOKEN_HERE";
+const timeInterval = 5 * 60 * 1000; // 10 minutes
+const pointsPerInterval = 16; // Award 5 points for
+
 
 // Initialize house points. Change this depending on house names
 let house_points = {
@@ -94,6 +97,7 @@ client.on('ready', async () => {
     console.log(`Bot has connected to Discord!`);
     await client.application.commands.set(commands);
     console.log(`Commands registered.`);
+    setInterval(updateVoiceChannelPoints, timeInterval);
     load_points();
 });
 
@@ -163,12 +167,52 @@ client.on('interactionCreate', async interaction => {
 }
 });
 
+function addPointsForUser(house, points) {
+    if (house_points.hasOwnProperty(house)) {
+        house_points[house] += points;
+        save_points();
+    }
+}
+
+async function updateVoiceChannelPoints() {
+    const guild = await client.guilds.fetch("YOUR_GUILD_ID");
+    const voiceChannels = guild.channels.cache.filter(channel => channel.isVoice());
+
+    voiceChannels.each(async channel => {
+        const channelMembers = channel.members;
+        channelMembers.each(async member => {
+            const userHouse = getUserHouse(member);
+            if (userHouse) {
+                addPointsForUser(userHouse, POINTS_PER_); // Change the number of points to be added as needed
+            }
+        });
+    });
+
+    setTimeout(updateVoiceChannelPoints, 60 * 1000); // Checks and updates points every minute
+}
+
 function save_points() {
 let data = '';
 for (const [house, points] of Object.entries(house_points)) {
 data += `${house}:${points}\n`;
 }
 fs.writeFileSync('house_points.txt', data);
+}
+
+async function getUserHouse(guild, userId) {
+  // Fetch the member from the guild
+  const member = await guild.members.fetch(userId);
+
+  // Iterate over the member's roles
+  for (const role of member.roles.cache.values()) {
+    // Check if the role name is a house name
+    if (house_points.hasOwnProperty(role.name)) {
+      return role.name;
+    }
+  }
+
+  // Return null if no house name found
+  return null;
 }
 
 function load_points() {
