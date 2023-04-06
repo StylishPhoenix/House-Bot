@@ -1,71 +1,103 @@
 const fs = require('fs');
-const { Client, Intents, Permissions } = require('discord.js');
+const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 // Initialize the bot
-const bot = new Client({ intents: [Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_CONTENT] });
-const token = "INSERT_TOKEN_HERE";
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const token = "MTA4NTk5MDA5ODI3OTA4NDA5Mw.G17RcK.WX42aOyfzEE_Y6hIbe4LyER1jVVMwTtvFm6UgY";
 
 // Initialize house points. Change this depending on house names
 let house_points = {
-    'Necromancer',
-    'Herbalist',
-    'Mesmer',
-    'Philosopher'
+    'Necromancer' : 0,
+    'Herbalist' : 0,
+    'Mesmer' : 0,
+    'Philosopher' : 0
 };
 
 // Define slash commands to add and remove house points
-const add_points = new SlashCommandBuilder()
-    .setName("add_points")
-    .setDescription("Adds points to a house")
-    .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-        .addChoice("Necromancer", "Necromancer")
-        .addChoice("Herbalist", "Herbalist")
-        .addChoice("Mesmer", "Mesmer")
-        .addChoice("Philosopher", "Philosopher"))
-    .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true)
-        .addChoice("Pinging the mods/Modmail", 1)
-        .addChoice("Invite friends to the server", 2)
-        .addChoice("Participate in events", 3)
-        .addChoice("Boost the server", 4)
-        .addChoice("Bump the server", 5)
-        .addChoice("Welcome new people", 6)
-        .addChoice("Posting Memes", 7)
-        .addChoice("Host events", 8)
-        .addChoice("Donate to the server", 9));
+const addPoints = new SlashCommandBuilder()
+    .setName('add_points')
+    .setDescription('Adds points to a house')
+    .addStringOption(option =>
+        option.setName('house')
+        .setDescription('House name here')
+        .setRequired(true)
+        .addChoices(
+            {name: "Necromancer", value: "Necromancer"},
+            {name: "Herbalist", value: "Herbalist"},
+            {name: "Mesmer", value: "Mesmer"},
+            {name: "Philosopher", value: "Philosopher"}
+        )
+    )
+    .addIntegerOption(option =>
+        option.setName('points')
+        .setDescription('Points here')
+        .setRequired(true)
+        .addChoices(
+            // Add choices for the bot here. Please use a unique value, then add it to the nested ifs below
+            {name: "Pinging the mods/Modmail", value: 1},
+            {name: "Invite friends to the server", value: 2},
+            {name: "Participate in events", value: 3},
+            {name: "Boost the server", value: 4},
+            {name: "Bump the server", value: 5},
+            {name: "Welcome new people", value: 6},
+            {name: "Posting Memes", value: 7},
+            {name: "Host events", value: 8},
+            {name: "Donate to the server", value: 9}
+        )
+    )
+    .setDMPermission(false);
 
 const remove_points = new SlashCommandBuilder()
     .setName("remove_points")
     .setDescription("Removes points from a house")
     .setDefaultPermission(false)
     .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-        .addChoice("Necromancer", "Necromancer")
-        .addChoice("Herbalist", "Herbalist")
-        .addChoice("Mesmer", "Mesmer")
-        .addChoice("Philosopher", "Philosopher"))
-    .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true));
+    .addChoices(
+            {name: "Necromancer", value: "Necromancer"},
+            {name: "Herbalist", value: "Herbalist"},
+            {name: "Mesmer", value: "Mesmer"},
+            {name: "Philosopher", value: "Philosopher"}
+        ))
+    .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
+    .setDMPermission(false)
+    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
 
 const add_point_amount = new SlashCommandBuilder()
     .setName("add_point_amount")
     .setDescription("Adds a certain amount of points to a house")
     .setDefaultPermission(false)
     .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-        .addChoice("Necromancer", "Necromancer")
-        .addChoice("Herbalist", "Herbalist")
-        .addChoice("Mesmer", "Mesmer")
-        .addChoice("Philosopher", "Philosopher"))
-    .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true));
+    .addChoices(
+            {name: "Necromancer", value: "Necromancer"},
+            {name: "Herbalist", value: "Herbalist"},
+            {name: "Mesmer", value: "Mesmer"},
+            {name: "Philosopher", value: "Philosopher"}
+        ))
+    .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
+    .setDMPermission(false)
+    .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
 
 const show_points = new SlashCommandBuilder()
     .setName("points")
     .setDescription("Displays the current house points");
 
-bot.on('ready', () => {
+const commands = [
+    addPoints.toJSON(),
+    remove_points.toJSON(),
+    show_points.toJSON(),
+    add_point_amount.toJSON(),
+    // Add other commands here
+];
+
+client.on('ready', async () => {
     console.log(`Bot has connected to Discord!`);
+    await client.application.commands.set(commands);
+    console.log(`Commands registered.`);
     load_points();
 });
 
-bot.on('interactionCreate', async interaction => {
+client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
     
     const { commandName } = interaction;
@@ -134,7 +166,7 @@ bot.on('interactionCreate', async interaction => {
 function save_points() {
 let data = '';
 for (const [house, points] of Object.entries(house_points)) {
-data += ${house}:${points}\n;
+data += `${house}:${points}\n`;
 }
 fs.writeFileSync('house_points.txt', data);
 }
@@ -151,5 +183,4 @@ house_points[house] = parseInt(points, 10);
 }
 }
 
-bot.login(token);
-
+client.login(token);
