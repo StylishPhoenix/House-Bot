@@ -3,9 +3,13 @@ A Discord bot that allows you to manage house points for a server. Users can add
 
 # Features
 Add points to a house
+
 Remove points from a house
+
 Add a specific amount of points to a house
+
 Display the current points for each house
+
 # Installation
 Clone this repository
 Run npm install to install the required dependencies
