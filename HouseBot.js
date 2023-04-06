@@ -197,6 +197,22 @@ function updateUserHousePoints(userId, house, minutes) {
   console.log(`${points} points added to ${house} for user ${userId} voice activity.`);
 }
 
+async function getUserHouse(guild, userId) {
+  // Fetch the member from the guild
+  const member = await guild.members.fetch(userId);
+
+  // Iterate over the member's roles
+  for (const role of member.roles.cache.values()) {
+    // Check if the role name is a house name
+    if (house_points.hasOwnProperty(role.name)) {
+      return role.name;
+    }
+  }
+
+  // Return null if no house name found
+  return null;
+}
+
 function save_points() {
 let data = '';
 for (const [house, points] of Object.entries(house_points)) {
@@ -225,7 +241,7 @@ setInterval(() => {
       if (voiceState.channelId && userVoiceJoinTime.has(voiceState.id)) {
         const joinTime = userVoiceJoinTime.get(voiceState.id);
         const timeSpent = (Date.now() - joinTime) / 60000;
-        const userHouse = getUserHouse(voiceState.id);
+        const userHouse = getUserHouse(guild, userId);
         updateUserHousePoints(voiceState.id, userHouse, Math.floor(timeSpent));
         userVoiceJoinTime.set(voiceState.id, Date.now());
       }
