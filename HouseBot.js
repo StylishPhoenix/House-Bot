@@ -181,14 +181,14 @@ async function updateVoiceChannelPoints() {
     voiceChannels.each(async channel => {
         const channelMembers = channel.members;
         channelMembers.each(async member => {
-            const userHouse = getUserHouse(member);
+            const userHouse = getUserHouse(guild, member.id);
             if (userHouse) {
-                addPointsForUser(userHouse, POINTS_PER_); // Change the number of points to be added as needed
+                addPointsForUser(userHouse, pointsPerInterval); // Change the number of points to be added as needed
             }
         });
     });
 
-    setTimeout(updateVoiceChannelPoints, 60 * 1000); // Checks and updates points every minute
+    setTimeout(updateVoiceChannelPoints, 60 * 1000 * 5); // Checks and updates points every five minutes
 }
 
 function save_points() {
