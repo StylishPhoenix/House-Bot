@@ -5,8 +5,6 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const token = "INSERT_TOKEN_HERE";
-const userVoiceJoinTime = new Map();
-const voiceActivityCheckInterval = 60000; // 60000 ms = 1 minute
 
 // Initialize house points. Change this depending on house names
 let house_points = {
@@ -99,26 +97,6 @@ client.on('ready', async () => {
     load_points();
 });
 
-client.on('voiceStateUpdate', (oldState, newState) => {
-  const userId = newState.id;
-  const oldChannelId = oldState.channelId;
-  const newChannelId = newState.channelId;
-
-  if (oldChannelId === newChannelId) return;
-
-  if (!oldChannelId && newChannelId) {
-    userVoiceJoinTime.set(userId, Date.now());
-  } else if (oldChannelId && !newChannelId) {
-    const joinTime = userVoiceJoinTime.get(userId);
-    if (joinTime) {
-      const timeSpent = (Date.now() - joinTime) / 60000;
-      const userHouse = getUserHouse(userId); // You'll need to implement this function
-      updateUserHousePoints(userId, userHouse, Math.floor(timeSpent));
-      userVoiceJoinTime.delete(userId);
-    }
-  }
-});
-
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
     
@@ -185,34 +163,6 @@ client.on('interactionCreate', async interaction => {
 }
 });
 
-function updateUserHousePoints(userId, house, minutes) {
-  if (!house_points.hasOwnProperty(house)) {
-    console.log(`Invalid house name: ${house}`);
-    return;
-  }
-
-  const points = minutes * 3; // Change this number to adjust the points per minute
-  house_points[house] += points;
-  save_points();
-  console.log(`${points} points added to ${house} for user ${userId} voice activity.`);
-}
-
-async function getUserHouse(guild, userId) {
-  // Fetch the member from the guild
-  const member = await guild.members.fetch(userId);
-
-  // Iterate over the member's roles
-  for (const role of member.roles.cache.values()) {
-    // Check if the role name is a house name
-    if (house_points.hasOwnProperty(role.name)) {
-      return role.name;
-    }
-  }
-
-  // Return null if no house name found
-  return null;
-}
-
 function save_points() {
 let data = '';
 for (const [house, points] of Object.entries(house_points)) {
@@ -234,17 +184,3 @@ house_points[house] = parseInt(points, 10);
 }
 
 client.login(token);
-
-setInterval(() => {
-  client.guilds.cache.forEach((guild) => {
-    guild.voiceStates.cache.forEach((voiceState) => {
-      if (voiceState.channelId && userVoiceJoinTime.has(voiceState.id)) {
-        const joinTime = userVoiceJoinTime.get(voiceState.id);
-        const timeSpent = (Date.now() - joinTime) / 60000;
-        const userHouse = getUserHouse(guild, userId);
-        updateUserHousePoints(voiceState.id, userHouse, Math.floor(timeSpent));
-        userVoiceJoinTime.set(voiceState.id, Date.now());
-      }
-    });
-  });
-}, voiceActivityCheckInterval);
