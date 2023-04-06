@@ -4,7 +4,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-const token = "MTA4NTk5MDA5ODI3OTA4NDA5Mw.G17RcK.WX42aOyfzEE_Y6hIbe4LyER1jVVMwTtvFm6UgY";
+const token = "INSERT_TOKEN_HERE";
 
 // Initialize house points. Change this depending on house names
 let house_points = {
