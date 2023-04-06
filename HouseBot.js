@@ -3,10 +3,11 @@ const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require(
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 // Initialize the bot
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 const token = "INSERT_TOKEN_HERE";
-const timeInterval = 5 * 60 * 1000; // 10 minutes
-const pointsPerInterval = 16; // Award 5 points for
+const timeInterval = 5 * 60 * 1000; // 5 minutes
+const pointsPerInterval = 16; // Award 16 points per 5 minutes - 200/hr
+const guildID = "INSERT_SERVER_ID_HERE"
 
 
 // Initialize house points. Change this depending on house names
@@ -97,7 +98,7 @@ client.on('ready', async () => {
     console.log(`Bot has connected to Discord!`);
     await client.application.commands.set(commands);
     console.log(`Commands registered.`);
-    setInterval(updateVoiceChannelPoints, timeInterval);
+    updateVoiceChannelPoints();
     load_points();
 });
 
@@ -175,20 +176,21 @@ function addPointsForUser(house, points) {
 }
 
 async function updateVoiceChannelPoints() {
-    const guild = await client.guilds.fetch("YOUR_GUILD_ID");
-    const voiceChannels = guild.channels.cache.filter(channel => channel.isVoice());
+    const guild = await client.guilds.fetch(guildID);
+    const voiceChannels = guild.channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+
 
     voiceChannels.each(async channel => {
         const channelMembers = channel.members;
         channelMembers.each(async member => {
-            const userHouse = getUserHouse(guild, member.id);
+            const userHouse = getUserHouse(member);
             if (userHouse) {
                 addPointsForUser(userHouse, pointsPerInterval); // Change the number of points to be added as needed
             }
         });
     });
 
-    setTimeout(updateVoiceChannelPoints, 60 * 1000 * 5); // Checks and updates points every five minutes
+    setTimeout(updateVoiceChannelPoints, timeInterval); // Checks and updates points every minute
 }
 
 function save_points() {
