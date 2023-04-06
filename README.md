@@ -1,68 +1,38 @@
-# House-Bot
-This is a Discord bot written in Python using the discord and interactions modules to manage house points for a server with multiple houses. The bot supports the following commands:
+# House Points Bot
+A Discord bot that allows you to manage house points for a server. Users can add, remove, and view points for each house. This bot uses Discord.js v14 and slash commands.
 
-`/add_points`: adds points to a specific house based on a predefined list of options. The user selects the house and the point value from a dropdown list.
+# Features
+Add points to a house
 
-`/remove_points`: removes points from a specific house. This command is only available to users with administrative permissions.
+Remove points from a house
 
-`/add_point_amount`: adds a custom amount of points to a specific house. This command is only available to users with administrative permissions.
+Add a specific amount of points to a house
 
-`/points`: displays the current point values for all houses.
+Display the current points for each house
 
-The bot also saves the current point values to a text file when it shuts down and loads them from the file when it starts up.
+# Installation
+Clone this repository
 
-# Getting Started
-To use this bot, you will need to create a Discord bot account and obtain a token for the bot. You can follow the instructions in this tutorial to create a bot account and get a token.
+Run npm install to install the required dependencies
 
-Once you have the token, replace INSERT_TOKEN_HERE in the code with your token.
+Replace INSERT_TOKEN_HERE with your Discord bot token in the housebot.js file
 
-You will also need to install the discord and interactions modules. You can do this using pip:
-```pip install discord interactions```
-# Configuring the Bot
-# House Names
-The bot is initialized with a dictionary of house points. You can modify this dictionary to add or remove houses or change the names of the houses.
+Customize the house names and points in the house_points object
 
-To modify the house names, change the keys of the house_points dictionary in the code. For example, if you wanted to add a new house named "Wizard", you would add the following line to the dictionary:
-```
-house_points['Wizard'] = 0
-```
-To remove a house, simply remove its key from the dictionary. For example, if you wanted to remove the "Philosopher" house, you would remove the following line from the dictionary:
+Add or modify the point choices in the add_points command
 
-```
-'Philosopher': 0,
-```
-# Point Values
-In the /add_points command, the point values for each option are defined using nested if statements. You can modify these values to assign different point values to each option.
+# Usage
+Run the bot using node housebot.js.
 
-To modify the point values, change the values of the choices parameter for the points option in the /add_points command. For example, if you wanted to increase the point value for "Bump the server" to 150, you would change the following line:
+Available slash commands:
 
-```
-interactions.Choice(name="Bump the server", value=5),
-```
-to:
+`/add_points`: Add points to a house based on predefined point choices
 
-```
-interactions.Choice(name="Bump the server", value=150),
-```
-# Permissions
-In the /remove_points and /add_point_amount commands, the user must have administrative permissions to use these commands. You can modify the default_member_permissions parameter in the /remove_points and /add_point_amount commands to change the required permissions for these commands.
+`/remove_points`: Remove a specific number of points from a house (restricted to users with ban member permissions)
 
-For example, if you wanted to allow users with the "Moderator" role to use these commands, you would change the following line:
+`/add_point_amount`: Add a specific number of points to a house (restricted to users with ban member permissions)
 
-```
-default_member_permissions=interactions.Permissions.ADMINISTRATOR,
-```
-to:
+`/points`: Display the current points for each house
 
-```
-default_member_permissions=interactions.Permissions(role=["Moderator"]),
-```
-# Running the Bot
-To run the bot, simply run the housebot.py file using Python:
-
-```
-python housebot.py
-```
-The bot will start up and connect to Discord. You can use the commands in Discord by typing `/command` in the chat, where command is the name of the command you want to use.
-
-When you shut down the bot, it will save the current point values to a text file named house_points.txt. When you start up the bot again, it will load the point values from this file. If the file does not exist, the bot will start with all house point values set to 0.
+# Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
