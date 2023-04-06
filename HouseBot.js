@@ -218,3 +218,17 @@ house_points[house] = parseInt(points, 10);
 }
 
 client.login(token);
+
+setInterval(() => {
+  client.guilds.cache.forEach((guild) => {
+    guild.voiceStates.cache.forEach((voiceState) => {
+      if (voiceState.channelId && userVoiceJoinTime.has(voiceState.id)) {
+        const joinTime = userVoiceJoinTime.get(voiceState.id);
+        const timeSpent = (Date.now() - joinTime) / 60000;
+        const userHouse = getUserHouse(voiceState.id);
+        updateUserHousePoints(voiceState.id, userHouse, Math.floor(timeSpent));
+        userVoiceJoinTime.set(voiceState.id, Date.now());
+      }
+    });
+  });
+}, voiceActivityCheckInterval);
