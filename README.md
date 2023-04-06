@@ -17,9 +17,13 @@ Run the bot using node housebot.js.
 
 Available slash commands:
 
-/add_points: Add points to a house based on predefined point choices
-/remove_points: Remove a specific number of points from a house (restricted to users with ban member permissions)
-/add_point_amount: Add a specific number of points to a house (restricted to users with ban member permissions)
-/points: Display the current points for each house
+`/add_points`: Add points to a house based on predefined point choices
+
+`/remove_points`: Remove a specific number of points from a house (restricted to users with ban member permissions)
+
+`/add_point_amount`: Add a specific number of points to a house (restricted to users with ban member permissions)
+
+`/points`: Display the current points for each house
+
 # Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
