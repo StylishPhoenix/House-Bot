@@ -1,10 +1,10 @@
 const fs = require('fs');
 const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { token } = require('./config.json');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-const token = "INSERT_TOKEN_HERE";
 
 // Initialize house points. Change this depending on house names
 let house_points = {
