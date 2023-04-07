@@ -121,7 +121,7 @@ client.on('interactionCreate', async interaction => {
     } else if (points === 6) {
         points = 100;
     } else if (points === 7) {
-        points = 100;
+        points = 50;
     } else if (points === 8) {
         points = 1000;
     } else if (points === 9) {
