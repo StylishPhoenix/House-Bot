@@ -5,7 +5,7 @@ const { token, guildID } = require('./config.json');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
-const timeInterval = .25 * 60 * 1000; // 5 minutes (currently 15 seconds for testing purposes)
+const timeInterval = 5 * 60 * 1000; // 5 minutes
 const pointsPerInterval = 16; // Award 16 points per 5 minutes - 200/hr
 
 
@@ -182,11 +182,11 @@ function addPointsForUser(house, points) {
 
 async function updateVoiceChannelPoints(guild) {
   setInterval(async () => {
-    const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE' && channel.id !== guild.afkChannelId);
+  const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 2 && channel.id !== guild.afkChannelId);
     for (const voiceChannel of voiceChannels.values()) {
       // Check if there are more than 1 human members in the voice channel
       const humanMembers = voiceChannel.members.filter(member => !member.user.bot);
-      if (humanMembers.size > 0) {
+      if (humanMembers.size > 1) {
         for (const member of humanMembers.values()) {
           const house = await getUserHouse(guild, member.id);
           if (house) {
