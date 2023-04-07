@@ -181,22 +181,22 @@ function addPointsForUser(house, points) {
 }
 
 async function updateVoiceChannelPoints(guild) {
-  console.log(`test`);
-  const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE' && channel.id !== guild.afkChannelId);
-  for (const voiceChannel of voiceChannels.values()) {
-    // Check if there are more than 1 human members in the voice channel
-    const humanMembers = voiceChannel.members.filter(member => !member.user.bot);
-    if (humanMembers.size > 0) {
-      for (const member of humanMembers.values()) {
-        const house = await getUserHouse(guild, member.id);
-        if (house) {
-          addPointsForUser(member.id, house);
+  setInterval(async () => {
+    const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE' && channel.id !== guild.afkChannelId);
+    for (const voiceChannel of voiceChannels.values()) {
+      // Check if there are more than 1 human members in the voice channel
+      const humanMembers = voiceChannel.members.filter(member => !member.user.bot);
+      if (humanMembers.size > 0) {
+        for (const member of humanMembers.values()) {
+          const house = await getUserHouse(guild, member.id);
+          if (house) {
+            addPointsForUser(house, pointsPerInterval);
+          }
         }
       }
     }
-  }
+  }, timeInterval);
 }
-
 
 function save_points() {
 let data = '';
