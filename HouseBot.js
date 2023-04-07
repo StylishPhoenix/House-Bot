@@ -176,7 +176,7 @@ function addPointsForUser(house, points) {
 }
 
 async function updateVoiceChannelPoints(guild) {
-  const voiceChannels = guild.channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+  const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE' && channel.id !== guild.afkChannelId);
   for (const voiceChannel of voiceChannels.values()) {
     // Check if there are more than 1 human members in the voice channel
     const humanMembers = voiceChannel.members.filter(member => !member.user.bot);
