@@ -97,8 +97,9 @@ client.on('ready', async () => {
     console.log(`Bot has connected to Discord!`);
     await client.application.commands.set(commands);
     console.log(`Commands registered.`);
-    updateVoiceChannelPoints();
     load_points();
+    // Call updateVoiceChannelPoints every minute (60000 milliseconds)
+    setInterval(() => updateVoiceChannelPoints(client.guilds.cache.first()), timeInterval);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -174,23 +175,22 @@ function addPointsForUser(house, points) {
     }
 }
 
-async function updateVoiceChannelPoints() {
-    const guild = await client.guilds.fetch(guildID);
-    const voiceChannels = guild.channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
-
-
-    voiceChannels.each(async channel => {
-        const channelMembers = channel.members;
-        channelMembers.each(async member => {
-            const userHouse = getUserHouse(member);
-            if (userHouse) {
-                addPointsForUser(userHouse, pointsPerInterval);
-            }
-        });
-    });
-
-    setTimeout(updateVoiceChannelPoints, timeInterval);
+async function updateVoiceChannelPoints(guild) {
+  const voiceChannels = guild.channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+  for (const voiceChannel of voiceChannels.values()) {
+    // Check if there are more than 1 human members in the voice channel
+    const humanMembers = voiceChannel.members.filter(member => !member.user.bot);
+    if (humanMembers.size > 1) {
+      for (const member of humanMembers.values()) {
+        const house = await getUserHouse(guild, member.id);
+        if (house) {
+          addPointsForUser(member.id, house);
+        }
+      }
+    }
+  }
 }
+
 
 function save_points() {
 let data = '';
