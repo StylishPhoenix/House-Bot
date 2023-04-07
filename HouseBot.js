@@ -5,7 +5,7 @@ const { token, guildID } = require('./config.json');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
-const timeInterval = 5 * 60 * 1000; // 5 minutes
+const timeInterval = .25 * 60 * 1000; // 5 minutes
 const pointsPerInterval = 16; // Award 16 points per 5 minutes - 200/hr
 
 
@@ -98,8 +98,13 @@ client.on('ready', async () => {
     await client.application.commands.set(commands);
     console.log(`Commands registered.`);
     load_points();
-    // Call updateVoiceChannelPoints every minute (60000 milliseconds)
-    setInterval(() => updateVoiceChannelPoints(client.guilds.cache.first()), timeInterval);
+    const guild = client.guilds.cache.get(guildID);
+    if (guild) {
+        updateVoiceChannelPoints(guild);
+    } else {
+        console.error(`Guild not found with ID: ${guildID}`);
+    }
+	  
 });
 
 client.on('interactionCreate', async interaction => {
@@ -176,11 +181,12 @@ function addPointsForUser(house, points) {
 }
 
 async function updateVoiceChannelPoints(guild) {
+  console.log(`test`);
   const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 'GUILD_VOICE' && channel.id !== guild.afkChannelId);
   for (const voiceChannel of voiceChannels.values()) {
     // Check if there are more than 1 human members in the voice channel
     const humanMembers = voiceChannel.members.filter(member => !member.user.bot);
-    if (humanMembers.size > 1) {
+    if (humanMembers.size > 0) {
       for (const member of humanMembers.values()) {
         const house = await getUserHouse(guild, member.id);
         if (house) {
