@@ -10,6 +10,8 @@ Add a specific amount of points to a house
 
 Display the current points for each house
 
+Adds points based on how long a user is in a voice channel.
+
 # Installation
 Clone this repository
 
