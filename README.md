@@ -13,13 +13,18 @@ Display the current points for each house
 # Installation
 Clone this repository
 
-Run npm install to install the required dependencies
+Run npm install to install the required dependencies.
 
-Replace INSERT_TOKEN_HERE with your Discord bot token in the housebot.js file
+Create a `config.json` file in the same folder as HouseBot.js.  The file should look like this
+```
+{
+"token" : "INSERT_YOUR_TOKEN_HERE"
+}
+```
 
-Customize the house names and points in the house_points object
+Customize the house names and points in the house_points object.
 
-Add or modify the point choices in the add_points command
+Add or modify the point choices in the add_points command.
 
 # Usage
 Run the bot using node housebot.js.
