@@ -13,7 +13,7 @@ Display the current points for each house
 # Installation
 Clone this repository
 
-Run npm install to install the required dependencies.
+Run `npm install discord.js@latest` to install the required dependencies.
 
 Create a `config.json` file in the same folder as HouseBot.js.  The file should look like this
 ```
