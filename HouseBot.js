@@ -5,7 +5,7 @@ const { token, guildID } = require('./config.json');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
-const timeInterval = .25 * 60 * 1000; // 5 minutes
+const timeInterval = .25 * 60 * 1000; // 5 minutes (currently 15 seconds for testing purposes)
 const pointsPerInterval = 16; // Award 16 points per 5 minutes - 200/hr
 
 
