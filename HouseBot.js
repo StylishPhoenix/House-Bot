@@ -6,7 +6,7 @@ const { token, guildID } = require('./config.json');
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 const timeInterval = 5 * 60 * 1000; // 5 minutes
-const pointsPerInterval = 16; // Award 16 points per 5 minutes - 200/hr
+const pointsPerInterval = 15; // Award 16 points per 5 minutes - 200/hr
 
 
 // Initialize house points. Change this depending on house names
