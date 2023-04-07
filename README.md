@@ -18,7 +18,8 @@ Run npm install to install the required dependencies.
 Create a `config.json` file in the same folder as HouseBot.js.  The file should look like this
 ```
 {
-"token" : "INSERT_YOUR_TOKEN_HERE"
+"token" : "INSERT_YOUR_TOKEN_HERE",
+"guildID" : "INSERT_SERVER_ID_HERE"
 }
 ```
 
