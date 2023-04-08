@@ -27,7 +27,13 @@ const addPoints = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
     .setDescription('House name here')
     .setRequired(true)
-    .addChoices(houseChoices)
+    .addChoices(
+            {name: "Necromancer", value: "Necromancer"},
+            {name: "Herbalist", value: "Herbalist"},
+            {name: "Mesmer", value: "Mesmer"},
+            {name: "Philosopher", value: "Philosopher"}
+        )
+    )
 
 )
 
@@ -47,7 +53,13 @@ const remove_points = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
         .setDescription('House name here')
         .setRequired(true)
-        .addChoices(houseChoices)
+        .addChoices(
+            {name: "Necromancer", value: "Necromancer"},
+            {name: "Herbalist", value: "Herbalist"},
+            {name: "Mesmer", value: "Mesmer"},
+            {name: "Philosopher", value: "Philosopher"}
+        )
+    )
 )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
@@ -61,7 +73,13 @@ const add_point_amount = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
         .setDescription('House name here')
         .setRequired(true)
-        .addChoices(houseChoices)
+        .addChoices(
+            {name: "Necromancer", value: "Necromancer"},
+            {name: "Herbalist", value: "Herbalist"},
+            {name: "Mesmer", value: "Mesmer"},
+            {name: "Philosopher", value: "Philosopher"}
+        )
+    )
 )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
