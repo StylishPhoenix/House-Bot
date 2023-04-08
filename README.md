@@ -10,19 +10,23 @@ Add a specific amount of points to a house
 
 Display the current points for each house
 
+Adds points based on how long a user is in a voice channel.
+
 # Installation
 Clone this repository
 
-Run npm install to install the required dependencies.
+Run `npm install discord.js@latest` to install the required dependencies.
+
 
 Create a `config.json` file in the same folder as HouseBot.js.  The file should look like this
 ```
 {
-"token" : "INSERT_YOUR_TOKEN_HERE"
+"token" : "INSERT_YOUR_TOKEN_HERE",
+"guildID" : "INSERT_SERVER_ID_HERE"
 }
 ```
-Edit the examplehouseChoices.json and the examplepointChoices.json files to fit your needs.  Rename these to houseChoices.json and pointChoices.json respectively.
 
+Edit the examplehouseChoices.json and the examplepointChoices.json files to fit your needs.  Rename these to houseChoices.json and pointChoices.json respectively.
 
 # Usage
 Run the bot using node housebot.js.

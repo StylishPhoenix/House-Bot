@@ -1,12 +1,14 @@
 const fs = require('fs');
 const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { token } = require('./config.json');
+const { token, guildID } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
 const houseChoices = require('./houseChoices.json');
 
 // Initialize the bot
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+const timeInterval = 5 * 60 * 1000; // 5 minutes
+const pointsPerInterval = 15; // Award 16 points per 5 minutes - 200/hr
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
@@ -72,6 +74,13 @@ client.on('ready', async () => {
     await client.application.commands.set(commands);
     console.log(`Commands registered.`);
     load_points();
+    const guild = client.guilds.cache.get(guildID);
+    if (guild) {
+        updateVoiceChannelPoints(guild);
+    } else {
+        console.error(`Guild not found with ID: ${guildID}`);
+    }
+	  
 });
 
 client.on('interactionCreate', async interaction => {
@@ -85,6 +94,7 @@ client.on('interactionCreate', async interaction => {
         await interaction.reply(`Invalid house name: ${house}`);
         return;
     }
+
    const selectedChoice = pointChoices.find(choice => choice.value === points);
    if (selectedChoice) {
       points = selectedChoice.points;
@@ -128,12 +138,53 @@ client.on('interactionCreate', async interaction => {
 }
 });
 
+function addPointsForUser(house, points) {
+    if (house_points.hasOwnProperty(house)) {
+        house_points[house] += points;
+        save_points();
+    }
+}
+
+async function updateVoiceChannelPoints(guild) {
+  setInterval(async () => {
+  const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 2 && channel.id !== guild.afkChannelId);
+    for (const voiceChannel of voiceChannels.values()) {
+      // Check if there are more than 1 human members in the voice channel
+      const humanMembers = voiceChannel.members.filter(member => !member.user.bot);
+      if (humanMembers.size > 1) {
+        for (const member of humanMembers.values()) {
+          const house = await getUserHouse(guild, member.id);
+          if (house) {
+            addPointsForUser(house, pointsPerInterval);
+          }
+        }
+      }
+    }
+  }, timeInterval);
+}
+
 function save_points() {
 let data = '';
 for (const [house, points] of Object.entries(house_points)) {
 data += `${house}:${points}\n`;
 }
 fs.writeFileSync('house_points.txt', data);
+}
+
+async function getUserHouse(guild, userId) {
+  // Fetch the member from the guild
+  const member = await guild.members.fetch(userId);
+
+  // Iterate over the member's roles
+  for (const role of member.roles.cache.values()) {
+    // Check if the role name is a house name
+    if (house_points.hasOwnProperty(role.name)) {
+      return role.name;
+    }
+  }
+
+  // Return null if no house name found
+  return null;
 }
 
 function load_points() {
