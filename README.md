@@ -21,10 +21,8 @@ Create a `config.json` file in the same folder as HouseBot.js.  The file should 
 "token" : "INSERT_YOUR_TOKEN_HERE"
 }
 ```
+Edit the examplehouseChoices.json and the examplepointChoices.json files to fit your needs.  Rename these to houseChoices.json and pointChoices.json respectively.
 
-Customize the house names and points in the house_points object.
-
-Add or modify the point choices in the add_points command.
 
 # Usage
 Run the bot using node housebot.js.
