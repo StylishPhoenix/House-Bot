@@ -29,7 +29,7 @@ const addPoints = new SlashCommandBuilder()
         option.setName('points')
         .setDescription('Points here')
         .setRequired(true)
-        .addChoices(pointChoices.map(choice => ({name: choice.name, value: choice.value})))
+        .addChoices(pointChoices.map(choice => ({name: choice.name, value: choice.value}))))
     )
     .setDMPermission(false);
 
