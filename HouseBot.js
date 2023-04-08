@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { token, guildID, timeInterval, pointsPerInterval } = require('./config.json');
+const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
 const houseChoices = require('./houseChoices.json');
 
@@ -149,7 +149,7 @@ async function updateVoiceChannelPoints(guild) {
     for (const voiceChannel of voiceChannels.values()) {
       // Check if there are more than 1 human members in the voice channel
       const humanMembers = voiceChannel.members.filter(member => !member.user.bot && !member.voice.mute && !member.voice.deaf);
-      if (humanMembers.size > 1) {
+      if (humanMembers.size >= minimumVoice) {
         for (const member of humanMembers.values()) {
           const house = await getUserHouse(guild, member.id);
           if (house) {
