@@ -1,0 +1,11 @@
+[
+    {"name": "Pinging the mods/Modmail", "value": 1, "points": 50},
+    {"name": "Invite friends to the server", "value": 2, "points": 100},
+    {"name": "Participate in events", "value": 3, "points": 100},
+    {"name": "Boost the server", "value": 4, "points": 100},
+    {"name": "Bump the server", "value": 5, "points": 100},
+    {"name": "Welcome new people", "value": 6, "points": 100},
+    {"name": "Posting Memes", "value": 7, "points": 50},
+    {"name": "Host events", "value": 8, "points": 1000},
+    {"name": "Donate to the server", "value": 9, "points": 2000}
+]
