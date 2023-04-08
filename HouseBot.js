@@ -22,12 +22,7 @@ const addPoints = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
     .setDescription('House name here')
     .setRequired(true)
-    .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        )
+    .addChoices(...require(./houseChoices))
     )
 
 
