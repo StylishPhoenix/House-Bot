@@ -24,7 +24,8 @@ Create a `config.json` file in the same folder as HouseBot.js.  The file should 
 	"token": "INSERT_YOUR_TOKEN_HERE",
 	"guildID": "INSERT_SERVER_ID_HERE",
 	"timeInterval": 300000,
-	"pointsPerInterval": 15
+	"pointsPerInterval": 15,
+	"minimumVoice": 2
 }
 ```
 
