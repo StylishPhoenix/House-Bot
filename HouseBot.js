@@ -35,7 +35,7 @@ const addPoints = new SlashCommandBuilder()
         option.setName('points')
         .setDescription('Points here')
         .setRequired(true)
-        .addChoices(require('./pointChoices.json'))
+        .addChoices(...require('./pointChoices.json'))
     )
     .setDMPermission(false);
 
