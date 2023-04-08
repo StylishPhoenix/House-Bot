@@ -21,8 +21,10 @@ Run `npm install discord.js@latest` to install the required dependencies.
 Create a `config.json` file in the same folder as HouseBot.js.  The file should look like this
 ```
 {
-"token" : "INSERT_YOUR_TOKEN_HERE",
-"guildID" : "INSERT_SERVER_ID_HERE"
+	"token": "INSERT_YOUR_TOKEN_HERE",
+	"guildID": "INSERT_SERVER_ID_HERE",
+	"timeInterval": 300000,
+	"pointsPerInterval": 15
 }
 ```
 
