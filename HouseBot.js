@@ -23,7 +23,9 @@ const addPoints = new SlashCommandBuilder()
         option.setName('house')
         .setDescription('House name here')
         .setRequired(true)
-        .addChoices(houseChoices))
+        .addChoices(
+             houseChoices.map((choice) => ({ name: choice.name, value: choice.name }))
+        ))
 
     .addIntegerOption(option =>
         option.setName('points')
@@ -38,7 +40,9 @@ const remove_points = new SlashCommandBuilder()
     .setDescription("Removes points from a house")
     .setDefaultPermission(false)
     .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-    .addChoices(houseChoices))
+    .addChoices(
+        houseChoices.map((choice) => ({ name: choice.name, value: choice.name }))
+    ))
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
@@ -48,7 +52,9 @@ const add_point_amount = new SlashCommandBuilder()
     .setDescription("Adds a certain amount of points to a house")
     .setDefaultPermission(false)
     .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-    .addChoices(houseChoices))
+    .addChoices(
+         houseChoices.map((choice) => ({ name: choice.name, value: choice.name }))
+    ))
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
