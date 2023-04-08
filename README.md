@@ -17,6 +17,7 @@ Clone this repository
 
 Run `npm install discord.js@latest` to install the required dependencies.
 
+
 Create a `config.json` file in the same folder as HouseBot.js.  The file should look like this
 ```
 {
@@ -25,9 +26,7 @@ Create a `config.json` file in the same folder as HouseBot.js.  The file should 
 }
 ```
 
-Customize the house names and points in the house_points object.
-
-Add or modify the point choices in the add_points command.
+Edit the examplehouseChoices.json and the examplepointChoices.json files to fit your needs.  Rename these to houseChoices.json and pointChoices.json respectively.
 
 # Usage
 Run the bot using node housebot.js.

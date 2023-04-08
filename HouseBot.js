@@ -2,52 +2,30 @@ const fs = require('fs');
 const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token, guildID } = require('./config.json');
+const pointChoices = require('./pointChoices.json');
+const houseChoices = require('./houseChoices.json');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 const timeInterval = 5 * 60 * 1000; // 5 minutes
 const pointsPerInterval = 15; // Award 16 points per 5 minutes - 200/hr
 
-
-// Initialize house points. Change this depending on house names
-let house_points = {
-    'Necromancer' : 0,
-    'Herbalist' : 0,
-    'Mesmer' : 0,
-    'Philosopher' : 0
-};
-
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
     .setName('add_points')
     .setDescription('Adds points to a house')
-    .addStringOption(option =>
-        option.setName('house')
-        .setDescription('House name here')
-        .setRequired(true)
-        .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        )
+    .addStringOption(option => option.setName('house')
+    .setDescription('House name here')
+    .setRequired(true)
+    .addChoices(...require('./houseChoices.json'))
     )
+
+
     .addIntegerOption(option =>
         option.setName('points')
         .setDescription('Points here')
         .setRequired(true)
-        .addChoices(
-            // Add choices for the bot here. Please use a unique value, then add it to the nested ifs below
-            {name: "Pinging the mods/Modmail", value: 1},
-            {name: "Invite friends to the server", value: 2},
-            {name: "Participate in events", value: 3},
-            {name: "Boost the server", value: 4},
-            {name: "Bump the server", value: 5},
-            {name: "Welcome new people", value: 6},
-            {name: "Posting Memes", value: 7},
-            {name: "Host events", value: 8},
-            {name: "Donate to the server", value: 9}
-        )
+        .addChoices(...require('./pointChoices.json'))
     )
     .setDMPermission(false);
 
@@ -55,13 +33,12 @@ const remove_points = new SlashCommandBuilder()
     .setName("remove_points")
     .setDescription("Removes points from a house")
     .setDefaultPermission(false)
-    .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-    .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        ))
+    .addStringOption(option => option.setName('house')
+        .setDescription('House name here')
+        .setRequired(true)
+        .addChoices(...require('./houseChoices.json'))
+    )
+
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
@@ -70,13 +47,12 @@ const add_point_amount = new SlashCommandBuilder()
     .setName("add_point_amount")
     .setDescription("Adds a certain amount of points to a house")
     .setDefaultPermission(false)
-    .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-    .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        ))
+    .addStringOption(option => option.setName('house')
+        .setDescription('House name here')
+        .setRequired(true)
+        .addChoices(...require('./houseChoices.json'))
+    )
+
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
@@ -118,24 +94,13 @@ client.on('interactionCreate', async interaction => {
         await interaction.reply(`Invalid house name: ${house}`);
         return;
     }
-    if (points === 1) {
-        points = 50;
-    } else if (points === 2) {
-        points = 100;
-    } else if (points === 3) {
-        points = 100;
-    } else if (points === 4) {
-        points = 100;
-    } else if (points === 5) {
-        points = 100;
-    } else if (points === 6) {
-        points = 100;
-    } else if (points === 7) {
-        points = 50;
-    } else if (points === 8) {
-        points = 1000;
-    } else if (points === 9) {
-        points = 2000;
+
+   const selectedChoice = pointChoices.find(choice => choice.value === points);
+   if (selectedChoice) {
+      points = selectedChoice.points;
+    } else {
+      await interaction.reply(`Invalid choice value: ${points}`);
+      return;
     }
     house_points[house] += points;
     await interaction.reply(`${points} points added to ${house}.`);
@@ -223,15 +188,22 @@ async function getUserHouse(guild, userId) {
 }
 
 function load_points() {
-if (fs.existsSync('house_points.txt')) {
-const lines = fs.readFileSync('house_points.txt', 'utf-8').split('\n');
-for (const line of lines) {
-const [house, points] = line.split(':');
-if (house && points) {
-house_points[house] = parseInt(points, 10);
+  house_points = {};
+  const houseChoicesValues = Object.values(require('./houseChoices.json'));
+  houseChoicesValues.forEach(({ name }) => {
+    house_points[name] = 0;
+  });
+
+  if (fs.existsSync('house_points.txt')) {
+    const lines = fs.readFileSync('house_points.txt', 'utf-8').split('\n');
+    for (const line of lines) {
+      const [house, points] = line.split(':');
+      if (house && points && house_points.hasOwnProperty(house)) {
+        house_points[house] = parseInt(points, 10);
+      }
+    }
+  }
 }
-}
-}
-}
+
 
 client.login(token);
