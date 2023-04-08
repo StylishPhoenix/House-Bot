@@ -3,18 +3,17 @@ const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require(
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
+const houseChoices = require('./houseChoices.json');
 
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // Initialize house points. Change this depending on house names
-let house_points = {
-    'Necromancer' : 0,
-    'Herbalist' : 0,
-    'Mesmer' : 0,
-    'Philosopher' : 0
-};
+let house_points = houseChoices.reduce((obj, choice) => {
+    obj[choice.value] = 0;
+    return obj;
+}, {});
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
@@ -24,13 +23,8 @@ const addPoints = new SlashCommandBuilder()
         option.setName('house')
         .setDescription('House name here')
         .setRequired(true)
-        .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        )
-    )
+        .addChoices(houseChoices.map(choice => ({name: choice.name, value: choice.value})))
+
     .addIntegerOption(option =>
         option.setName('points')
         .setDescription('Points here')
@@ -44,12 +38,7 @@ const remove_points = new SlashCommandBuilder()
     .setDescription("Removes points from a house")
     .setDefaultPermission(false)
     .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-    .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        ))
+    .addChoices(houseChoices.map(choice => ({name: choice.name, value: choice.value})))
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
@@ -59,12 +48,7 @@ const add_point_amount = new SlashCommandBuilder()
     .setDescription("Adds a certain amount of points to a house")
     .setDefaultPermission(false)
     .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-    .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        ))
+    .addChoices(houseChoices.map(choice => ({name: choice.name, value: choice.value})))
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
