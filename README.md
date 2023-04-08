@@ -13,7 +13,7 @@ Display the current points for each house
 Adds points based on how long a user is in a voice channel.
 
 # Installation
-Clone this repository
+Clone this repository with `git clone https://github.com/StylishPhoenix/House-Bot.git`
 
 Run `npm install discord.js@latest` to install the required dependencies.
 
