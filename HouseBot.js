@@ -19,13 +19,12 @@ let house_points = houseChoices.reduce((obj, choice) => {
 const addPoints = new SlashCommandBuilder()
     .setName('add_points')
     .setDescription('Adds points to a house')
-    .addStringOption(option =>
-        option.setName('house')
-        .setDescription('House name here')
-        .setRequired(true)
-        .addChoices(
-             houseChoices.map((choice) => ({ name: choice.name, value: choice.name }))
-        ))
+    .addStringOption(option => option.setName('house')
+    .setDescription('House name here')
+    .setRequired(true)
+    .addChoices(houseChoices)
+)
+
 
     .addIntegerOption(option =>
         option.setName('points')
@@ -39,10 +38,12 @@ const remove_points = new SlashCommandBuilder()
     .setName("remove_points")
     .setDescription("Removes points from a house")
     .setDefaultPermission(false)
-    .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-    .addChoices(
-        houseChoices.map((choice) => ({ name: choice.name, value: choice.name }))
-    ))
+    .addStringOption(option => option.setName('house')
+        .setDescription('House name here')
+        .setRequired(true)
+        .addChoices(houseChoices)
+)
+
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
@@ -51,10 +52,12 @@ const add_point_amount = new SlashCommandBuilder()
     .setName("add_point_amount")
     .setDescription("Adds a certain amount of points to a house")
     .setDefaultPermission(false)
-    .addStringOption(option => option.setName("house").setDescription("House name here").setRequired(true)
-    .addChoices(
-         houseChoices.map((choice) => ({ name: choice.name, value: choice.name }))
-    ))
+    .addStringOption(option => option.setName('house')
+        .setDescription('House name here')
+        .setRequired(true)
+        .addChoices(houseChoices)
+)
+
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
