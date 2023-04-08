@@ -3,8 +3,6 @@ const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require(
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
-const houseChoices = require('./houseChoices.json');
-
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
