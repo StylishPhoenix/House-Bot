@@ -58,7 +58,6 @@ const remove_points = new SlashCommandBuilder()
             {name: "Philosopher", value: "Philosopher"}
         )
     )
-)
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
@@ -78,7 +77,6 @@ const add_point_amount = new SlashCommandBuilder()
             {name: "Philosopher", value: "Philosopher"}
         )
     )
-)
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
     .setDMPermission(false)
