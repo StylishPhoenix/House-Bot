@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require(
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
+const houseChoices = require('./houseChoices.json');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -22,7 +23,7 @@ const addPoints = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
     .setDescription('House name here')
     .setRequired(true)
-    .addChoices(...require(./houseChoices))
+    .addChoices(...require('./houseChoices.json'))
     )
 
 
@@ -41,12 +42,7 @@ const remove_points = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
         .setDescription('House name here')
         .setRequired(true)
-        .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        )
+        .addChoices(...require('./houseChoices.json'))
     )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
@@ -60,12 +56,7 @@ const add_point_amount = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
         .setDescription('House name here')
         .setRequired(true)
-        .addChoices(
-            {name: "Necromancer", value: "Necromancer"},
-            {name: "Herbalist", value: "Herbalist"},
-            {name: "Mesmer", value: "Mesmer"},
-            {name: "Philosopher", value: "Philosopher"}
-        )
+        .addChoices(...require('./houseChoices.json'))
     )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
