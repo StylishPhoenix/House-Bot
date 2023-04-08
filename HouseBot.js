@@ -35,8 +35,6 @@ const addPoints = new SlashCommandBuilder()
         )
     )
 
-)
-
 
     .addIntegerOption(option =>
         option.setName('points')
