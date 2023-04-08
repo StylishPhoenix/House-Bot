@@ -22,8 +22,7 @@ const addPoints = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
     .setDescription('House name here')
     .setRequired(true)
-    .addChoices(
-    houseChoices.map((choice) => ({ name: choice.name, value: choice.name })))
+    .addChoices(houseChoices.map(choice => ({ name: choice.name, value: choice.name })))
 
 )
 
