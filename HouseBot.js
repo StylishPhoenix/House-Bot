@@ -35,18 +35,7 @@ const addPoints = new SlashCommandBuilder()
         option.setName('points')
         .setDescription('Points here')
         .setRequired(true)
-        .addChoices(
-            // Add choices for the bot here. Please use a unique value, then add it to the nested ifs below
-            {name: "Pinging the mods/Modmail", value: 1},
-            {name: "Invite friends to the server", value: 2},
-            {name: "Participate in events", value: 3},
-            {name: "Boost the server", value: 4},
-            {name: "Bump the server", value: 5},
-            {name: "Welcome new people", value: 6},
-            {name: "Posting Memes", value: 7},
-            {name: "Host events", value: 8},
-            {name: "Donate to the server", value: 9}
-        )
+        .addChoices(require('./pointChoices.json'))
     )
     .setDMPermission(false);
 
