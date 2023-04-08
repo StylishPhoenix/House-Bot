@@ -15,6 +15,13 @@ let house_points = houseChoices.reduce((obj, choice) => {
     return obj;
 }, {});
 
+const houseChoices = [
+  { name: 'Necromancer', value: 'Necromancer' },
+  { name: 'Herbalist', value: 'Herbalist' },
+  { name: 'Mesmer', value: 'Mesmer' },
+  { name: 'Philosopher', value: 'Philosopher' }
+];
+
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
     .setName('add_points')
