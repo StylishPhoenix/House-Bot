@@ -7,18 +7,13 @@ const pointChoices = require('./pointChoices.json');
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-const houseChoices = [
-  { name: 'Necromancer', value: 'Necromancer' },
-  { name: 'Herbalist', value: 'Herbalist' },
-  { name: 'Mesmer', value: 'Mesmer' },
-  { name: 'Philosopher', value: 'Philosopher' }
-];
-
 // Initialize house points. Change this depending on house names
-let house_points = houseChoices.reduce((obj, choice) => {
-    obj[choice.value] = 0;
-    return obj;
-}, {});
+let house_points = {
+    'Necromancer' : 0,
+    'Herbalist' : 0,
+    'Mesmer' : 0,
+    'Philosopher' : 0
+};
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
@@ -40,7 +35,18 @@ const addPoints = new SlashCommandBuilder()
         option.setName('points')
         .setDescription('Points here')
         .setRequired(true)
-        .addChoices(pointChoices.map(choice => ({name: choice.name, value: choice.value})))
+        .addChoices(
+            // Add choices for the bot here. Please use a unique value, then add it to the nested ifs below
+            {name: "Pinging the mods/Modmail", value: 1},
+            {name: "Invite friends to the server", value: 2},
+            {name: "Participate in events", value: 3},
+            {name: "Boost the server", value: 4},
+            {name: "Bump the server", value: 5},
+            {name: "Welcome new people", value: 6},
+            {name: "Posting Memes", value: 7},
+            {name: "Host events", value: 8},
+            {name: "Donate to the server", value: 9}
+        )
     )
     .setDMPermission(false);
 
