@@ -1,14 +1,12 @@
 const fs = require('fs');
 const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { token, guildID } = require('./config.json');
+const { token, guildID, timeInterval, pointsPerInterval } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
 const houseChoices = require('./houseChoices.json');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
-const timeInterval = 5 * 60 * 1000; // 5 minutes
-const pointsPerInterval = 15; // Award 16 points per 5 minutes - 200/hr
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
