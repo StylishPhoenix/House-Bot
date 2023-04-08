@@ -148,7 +148,7 @@ async function updateVoiceChannelPoints(guild) {
   const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 2 && channel.id !== guild.afkChannelId);
     for (const voiceChannel of voiceChannels.values()) {
       // Check if there are more than 1 human members in the voice channel
-      const humanMembers = voiceChannel.members.filter(member => !member.user.bot);
+      const humanMembers = voiceChannel.members.filter(member => !member.user.bot && !member.voice.mute && !member.voice.deaf);
       if (humanMembers.size > 1) {
         for (const member of humanMembers.values()) {
           const house = await getUserHouse(guild, member.id);
