@@ -8,14 +8,6 @@ const houseChoices = require('./houseChoices.json');
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// Initialize house points. Change this depending on house names
-let house_points = {
-    'Necromancer' : 0,
-    'Herbalist' : 0,
-    'Mesmer' : 0,
-    'Philosopher' : 0
-};
-
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
     .setName('add_points')
@@ -145,15 +137,22 @@ fs.writeFileSync('house_points.txt', data);
 }
 
 function load_points() {
-if (fs.existsSync('house_points.txt')) {
-const lines = fs.readFileSync('house_points.txt', 'utf-8').split('\n');
-for (const line of lines) {
-const [house, points] = line.split(':');
-if (house && points) {
-house_points[house] = parseInt(points, 10);
+  house_points = {};
+  const houseChoicesValues = Object.values(require('./houseChoices.json'));
+  houseChoicesValues.forEach(({ name }) => {
+    house_points[name] = 0;
+  });
+
+  if (fs.existsSync('house_points.txt')) {
+    const lines = fs.readFileSync('house_points.txt', 'utf-8').split('\n');
+    for (const line of lines) {
+      const [house, points] = line.split(':');
+      if (house && points && house_points.hasOwnProperty(house)) {
+        house_points[house] = parseInt(points, 10);
+      }
+    }
+  }
 }
-}
-}
-}
+
 
 client.login(token);
