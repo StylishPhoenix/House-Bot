@@ -2,6 +2,8 @@ const fs = require('fs');
 const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token } = require('./config.json');
+const pointChoices = require('./pointChoices.json');
+
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -33,18 +35,7 @@ const addPoints = new SlashCommandBuilder()
         option.setName('points')
         .setDescription('Points here')
         .setRequired(true)
-        .addChoices(
-            // Add choices for the bot here. Please use a unique value, then add it to the nested ifs below
-            {name: "Pinging the mods/Modmail", value: 1},
-            {name: "Invite friends to the server", value: 2},
-            {name: "Participate in events", value: 3},
-            {name: "Boost the server", value: 4},
-            {name: "Bump the server", value: 5},
-            {name: "Welcome new people", value: 6},
-            {name: "Posting Memes", value: 7},
-            {name: "Host events", value: 8},
-            {name: "Donate to the server", value: 9}
-        )
+        .addChoices(pointChoices.map(choice => ({name: choice.name, value: choice.value})))
     )
     .setDMPermission(false);
 
@@ -108,24 +99,12 @@ client.on('interactionCreate', async interaction => {
         await interaction.reply(`Invalid house name: ${house}`);
         return;
     }
-    if (points === 1) {
-        points = 50;
-    } else if (points === 2) {
-        points = 100;
-    } else if (points === 3) {
-        points = 100;
-    } else if (points === 4) {
-        points = 100;
-    } else if (points === 5) {
-        points = 100;
-    } else if (points === 6) {
-        points = 100;
-    } else if (points === 7) {
-        points = 50;
-    } else if (points === 8) {
-        points = 1000;
-    } else if (points === 9) {
-        points = 2000;
+   const selectedChoice = pointChoices.find(choice => choice.value === points);
+   if (selectedChoice) {
+      points = selectedChoice.points;
+    } else {
+      await interaction.reply(`Invalid choice value: ${points}`);
+      return;
     }
     house_points[house] += points;
     await interaction.reply(`${points} points added to ${house}.`);
