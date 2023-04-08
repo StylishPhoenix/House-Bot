@@ -7,18 +7,18 @@ const pointChoices = require('./pointChoices.json');
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// Initialize house points. Change this depending on house names
-let house_points = houseChoices.reduce((obj, choice) => {
-    obj[choice.value] = 0;
-    return obj;
-}, {});
-
 const houseChoices = [
   { name: 'Necromancer', value: 'Necromancer' },
   { name: 'Herbalist', value: 'Herbalist' },
   { name: 'Mesmer', value: 'Mesmer' },
   { name: 'Philosopher', value: 'Philosopher' }
 ];
+
+// Initialize house points. Change this depending on house names
+let house_points = houseChoices.reduce((obj, choice) => {
+    obj[choice.value] = 0;
+    return obj;
+}, {});
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
