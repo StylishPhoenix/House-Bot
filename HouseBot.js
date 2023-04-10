@@ -161,7 +161,7 @@ function calculatePoints(userId, house, message) {
 	
   if (!userPointsData.hasOwnProperty(userId)) {
     userPointsData[userId] = {
-      lastMessageTimestamp: Date.now(),
+      lastMessageTimestamp: Date.now() - 1000,
       points: 0,
       messagesInCurrentInterval: 0,
     };
