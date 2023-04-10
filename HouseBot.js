@@ -174,6 +174,7 @@ function calculatePoints(userId, house, message) {
     userPointsData[userId].lastMessageTimestamp = now;
     userPointsData[userId].messagesInCurrentInterval = 0;
   } else if (elapsedTime < 1000) {
+    userPointsData[userId].lastMessageTimestamp = now;
     return;
   }
 
