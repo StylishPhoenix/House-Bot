@@ -173,7 +173,7 @@ function calculatePoints(userId, message) {
   if (elapsedTime >= 60000) {
     userPointsData[userId].lastMessageTimestamp = now;
     userPointsData[userId].messagesInCurrentInterval = 0;
-  } else if (elapsedTime < 1) {
+  } else if (elapsedTime < 10) {
     return;
   }
 
