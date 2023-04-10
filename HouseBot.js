@@ -157,7 +157,7 @@ function calculatePoints(userId, house, message) {
   if (message.length < 10) {
     return;
   }
-  const pointsPerMessage = [20, 15, 10, 10, 5, 5, 5, 5];
+  const pointsPerMessage = [25, 20, 15, 10, 10, 5, 5, 5, 5];
 	
   if (!userPointsData.hasOwnProperty(userId)) {
     userPointsData[userId] = {
@@ -179,7 +179,7 @@ function calculatePoints(userId, house, message) {
   }
 
   if (userPointsData[userId].messagesInCurrentInterval === 0) {
-    userPointsData[userId].points += 25;
+    userPointsData[userId].points += pointsPerMessage[userPointsData[userId].messagesInCurrentInterval];
   } else {
     userPointsData[userId].points += pointsPerMessage[userPointsData[userId].messagesInCurrentInterval] || 0;
   }
