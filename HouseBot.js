@@ -169,10 +169,10 @@ function calculatePoints(userId, house, message) {
   const now = Date.now();
   const elapsedTime = now - userPointsData[userId].lastMessageTimestamp;
 
-  if (elapsedTime >= 60000) {
+  if (elapsedTime >= 3600000) { //The maximum point cap resets every hour.
     userPointsData[userId].lastMessageTimestamp = now;
     userPointsData[userId].messagesInCurrentInterval = 0;
-  } else if (elapsedTime < 10) {
+  } else if (elapsedTime < 1000) {
     return;
   }
 
