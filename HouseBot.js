@@ -145,8 +145,10 @@ function addPointsForUser(house, points) {
 
 async function updateVoiceChannelPoints(guild) {
   setInterval(async () => {
-  const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 2 && channel.id !== guild.afkChannelId);
+    const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 2 && channel.id !== guild.afkChannelId);
+    console.log('Voice channels found:');
     for (const voiceChannel of voiceChannels.values()) {
+      console.log(voiceChannel.name);
       // Check if there are more than 1 human members in the voice channel
       const humanMembers = voiceChannel.members.filter(member => !member.user.bot && !member.voice.mute && !member.voice.deaf);
       if (humanMembers.size >= minimumVoice) {
@@ -160,6 +162,7 @@ async function updateVoiceChannelPoints(guild) {
     }
   }, timeInterval);
 }
+
 
 function save_points() {
 let data = '';
