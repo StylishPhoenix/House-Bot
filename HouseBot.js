@@ -173,7 +173,7 @@ function calculatePoints(userId, house, message) {
   if (elapsedTime >= 3600000) { //The maximum point cap resets every hour.
     userPointsData[userId].lastMessageTimestamp = now;
     userPointsData[userId].messagesInCurrentInterval = 0;
-  } else if (elapsedTime < 1000) {
+  } else if (elapsedTime < 1000) { //The minimum interval between messages.  If the user spams out a bunch, the system will update the time of their last message in order to prevent attempts to spam until they are rewarded.
     userPointsData[userId].lastMessageTimestamp = now;
     return;
   }
