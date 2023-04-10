@@ -157,7 +157,8 @@ function calculatePoints(userId, house, message) {
   if (message.length < 10) {
     return;
   }
-
+  const pointsPerMessage = [25, 20, 15, 10, 10, 5, 5, 5, 5];
+	
   if (!userPointsData.hasOwnProperty(userId)) {
     userPointsData[userId] = {
       lastMessageTimestamp: Date.now(),
@@ -179,7 +180,7 @@ function calculatePoints(userId, house, message) {
   if (userPointsData[userId].messagesInCurrentInterval === 0) {
     userPointsData[userId].points += 10;
   } else {
-    userPointsData[userId].points += Math.max(0, 10 - userPointsData[userId].messagesInCurrentInterval);
+    userPointsData[userId].points += pointsPerMessage[userPointsData[userId].messagesInCurrentInterval] || 0;
   }
 
   userPointsData[userId].messagesInCurrentInterval++;
