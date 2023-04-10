@@ -7,7 +7,7 @@ const houseChoices = require('./houseChoices.json');
 const userPointsData = {};
 
 // Initialize the bot
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent ] });
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
