@@ -4,6 +4,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
 const houseChoices = require('./houseChoices.json');
+const userPointsData = {};
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
@@ -81,6 +82,18 @@ client.on('ready', async () => {
 	  
 });
 
+client.on("messageCreate", async (message) => {
+  if (!message.guild || message.author.bot) return;
+
+  const userId = message.author.id;
+  const house = await getUserHouse(message.guild, userId);
+  if (!house) return;
+
+  calculatePoints(userId, message.content);
+  addPointsForUser(house, userPointsData[userId].points);
+  userPointsData[userId].points = 0;
+});
+
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
     
@@ -141,6 +154,41 @@ function addPointsForUser(house, points) {
         house_points[house] += points;
         save_points();
     }
+}
+function calculatePoints(userId, message) {
+  if (message.length < 10) {
+    return;
+  }
+
+  if (!userPointsData.hasOwnProperty(userId)) {
+    userPointsData[userId] = {
+      lastMessageTimestamp: Date.now(),
+      points: 0,
+      messagesInCurrentInterval: 0,
+    };
+  }
+
+  const now = Date.now();
+  const elapsedTime = now - userPointsData[userId].lastMessageTimestamp;
+
+  if (elapsedTime >= 60000) {
+    userPointsData[userId].lastMessageTimestamp = now;
+    userPointsData[userId].messagesInCurrentInterval = 0;
+  } else if (elapsedTime < 1000) {
+    return;
+  }
+
+  if (userPointsData[userId].messagesInCurrentInterval === 0) {
+    userPointsData[userId].points += 10;
+  } else {
+    userPointsData[userId].points += Math.max(0, 10 - userPointsData[userId].messagesInCurrentInterval);
+  }
+
+  userPointsData[userId].messagesInCurrentInterval++;
+
+  if (userPointsData[userId].points > 100) {
+    userPointsData[userId].points = 100;
+  }
 }
 
 async function updateVoiceChannelPoints(guild) {
