@@ -156,6 +156,7 @@ function addPointsForUser(house, points) {
 }
 function calculatePoints(userId, message) {
   if (message.length < 10) {
+    userPointsData[userId].points += 0;
     return;
   }
 
