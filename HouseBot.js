@@ -88,9 +88,8 @@ client.on("messageCreate", async (message) => {
   const userId = message.author.id;
   const house = await getUserHouse(message.guild, userId);
   if (!house) return;
-  calculatePoints(userId, message.content);
-  addPointsForUser(house, userPointsData[userId].points);
-  userPointsData[userId].points = 0;
+
+  calculatePoints(userId, house, message.content);
 });
 
 client.on('interactionCreate', async interaction => {
@@ -154,7 +153,7 @@ function addPointsForUser(house, points) {
         save_points();
     }
 }
-function calculatePoints(userId, message) {
+function calculatePoints(userId, house, message) {
   if (message.length < 10) {
     userPointsData[userId].points += 0;
     return;
@@ -189,6 +188,9 @@ function calculatePoints(userId, message) {
   if (userPointsData[userId].points > 100) {
     userPointsData[userId].points = 100;
   }
+  const earnedPoints = userPointsData[userId].points;
+  userPointsData[userId].points = 0;
+  addPointsForUser(house, earnedPoints);
 }
 
 async function updateVoiceChannelPoints(guild) {
