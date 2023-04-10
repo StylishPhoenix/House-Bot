@@ -88,7 +88,7 @@ client.on("messageCreate", async (message) => {
   const userId = message.author.id;
   const house = await getUserHouse(message.guild, userId);
   if (!house) return;
-
+  console.log(`test`);
   calculatePoints(userId, message.content);
   addPointsForUser(house, userPointsData[userId].points);
   userPointsData[userId].points = 0;
