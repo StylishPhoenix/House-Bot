@@ -366,15 +366,15 @@ async function sendPaginatedEmbed(interaction, rows) {
 }
 
 
-async function pointHistory(db, interaction, targetType, targetId, limit) {
+async function pointHistory(db, interaction, targetType, targetId) {
   return new Promise((resolve, reject) => {
     let query = '';
     if (targetType === 'user') {
-      query = `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?`;
+      query = `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp`;
     } else if (targetType === 'house') {
-      query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp DESC LIMIT ?`;
+      query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp`;
     }
-    const rows = db.prepare(query).all(targetId, limit);
+    const rows = db.prepare(query).all(targetId);
     resolve(rows);
   });
 }
