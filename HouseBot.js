@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
+const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
@@ -189,11 +189,7 @@ client.on('interactionCreate', async interaction => {
     }
     try {
       const pointHistoryArray = await pointHistory(db, interaction, targetType, targetId, limit);
-      const formattedHistory = pointHistoryArray.map((entry, index) => {
-        return `${index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
-      }).join('\n');
-
-      await interaction.reply(`Point history:\n${formattedHistory}`);
+      await sendPaginatedEmbed(interaction, pointHistoryArray);
     } catch (error) {
       console.error('Error fetching point history:', error);
       await interaction.reply({ content: 'An error occurred while fetching point history.', ephemeral: true });
@@ -306,6 +302,62 @@ async function updateVoiceChannelPoints(guild, client) {
         }
       }
     }
+  });
+}
+
+async function sendPaginatedEmbed(interaction, rows) {
+  const itemsPerPage = 10;
+  let currentPage = 0;
+
+  function generateEmbed(page) {
+    const startIndex = page * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const slicedRows = rows.slice(startIndex, endIndex);
+    const formattedHistory = slicedRows.map((entry, index) => {
+      return `${startIndex + index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
+    }).join('\n');
+
+    const embed = new MessageEmbed()
+      .setTitle('Point History')
+      .setDescription(formattedHistory)
+      .setFooter(`Page ${page + 1} of ${Math.ceil(rows.length / itemsPerPage)}`);
+
+    return embed;
+  }
+
+  const row = new MessageActionRow()
+    .addComponents(
+      new MessageButton()
+        .setCustomId('previous')
+        .setLabel('Previous')
+        .setStyle('PRIMARY'),
+      new MessageButton()
+        .setCustomId('next')
+        .setLabel('Next')
+        .setStyle('PRIMARY')
+    );
+
+  await interaction.reply({ embeds: [generateEmbed(currentPage)], components: [row], ephemeral: true });
+  const message = await interaction.fetchReply();
+
+  const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: 60000 });
+
+  collector.on('collect', async i => {
+    if (i.user.id !== interaction.user.id) {
+      return await i.reply({ content: 'You did not initiate this command.', ephemeral: true });
+    }
+
+    if (i.customId === 'previous') {
+      if (currentPage > 0) currentPage--;
+    } else if (i.customId === 'next') {
+      if (currentPage < Math.ceil(rows.length / itemsPerPage) - 1) currentPage++;
+    }
+
+    await i.update({ embeds: [generateEmbed(currentPage)], components: [row] });
+  });
+
+  collector.on('end', () => {
+    message.edit({ components: [] });
   });
 }
 
