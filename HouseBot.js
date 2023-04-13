@@ -5,6 +5,7 @@ const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = requir
 const pointChoices = require('./pointChoices.json');
 const houseChoices = require('./houseChoices.json');
 const userPointsData = {};
+const userVoiceTimes = {};
 const Database = require('better-sqlite3');
 
 // Initialize the bot
@@ -75,11 +76,7 @@ const displayPointHistory = new SlashCommandBuilder()
             .setDescription('Enter the user ID')
             .setRequired(true)
         )
-        .addIntegerOption(option => option.setName('limit')
-            .setDescription('Number of records to display (defaults to 20)')
-            .setRequired(false)
         )
-    )
     .addSubcommand(subcommand => subcommand
         .setName('house')
         .setDescription('Displays point history for a house')
@@ -87,10 +84,6 @@ const displayPointHistory = new SlashCommandBuilder()
             .setDescription('Enter the house name')
             .setRequired(true)
 			.addChoices(...require('./houseChoices.json'))
-        )
-        .addIntegerOption(option => option.setName('limit')
-            .setDescription('Number of records to display (defaults to 20)')
-            .setRequired(false)
         )
     );
 
@@ -110,7 +103,7 @@ client.on('ready', async () => {
     load_points();
     const guild = client.guilds.cache.get(guildID);
     if (guild) {
-        updateVoiceChannelPoints(guild);
+        updateVoiceChannelPoints(guild, client);
     } else {
         console.error(`Guild not found with ID: ${guildID}`);
     }
@@ -183,7 +176,7 @@ client.on('interactionCreate', async interaction => {
     const subcommand = interaction.options.getSubcommand();
     let targetType;
     let targetId;
-    let limit = interaction.options.getInteger('limit') || 20;
+    let limit = interaction.options.getInteger('limit') || 10;
 
     if (subcommand === 'user') {
       targetType = 'user';
@@ -250,9 +243,6 @@ function calculatePoints(userId, house, message) {
   }
 
   const elapsedTime = now - userPointsData[userId].lastMessageTimestamp;
-  console.log(`${elapsedTime}`);
-  console.log(`${now}`);
-  console.log(`${userPointsData[userId].lastMessageTimestamp}`);
   if (elapsedTime >= 3600000) { //The maximum point cap resets every hour.
     userPointsData[userId].lastMessageTimestamp = now;
     userPointsData[userId].messagesInCurrentInterval = 0;
@@ -281,23 +271,42 @@ function calculatePoints(userId, house, message) {
   logPoints(userId, house, earnedPoints, 'Chat Message');
 }
 
-async function updateVoiceChannelPoints(guild) {
-  setInterval(async () => {
-  const voiceChannels = guild.channels.cache.filter((channel) => channel.type === 2 && channel.id !== guild.afkChannelId);
-    for (const voiceChannel of voiceChannels.values()) {
-      // Check if there are more than 1 human members in the voice channel
-      const humanMembers = voiceChannel.members.filter(member => !member.user.bot && !member.voice.mute && !member.voice.deaf);
-      if (humanMembers.size >= minimumVoice) {
-        for (const member of humanMembers.values()) {
-          const house = await getUserHouse(guild, member.id);
-          if (house) {
-            addPointsForUser(house, pointsPerInterval);
-	    await logPoints(userId, house, points, 'Voice Channel Points');
-          }
+async function updateVoiceChannelPoints(guild, client) {
+  client.on('voiceStateUpdate', async (oldState, newState) => {
+    const userId = newState.id;
+    const oldChannel = oldState.channel;
+    const newChannel = newState.channel;
+
+    if (oldChannel !== newChannel) {
+      if (oldChannel) {
+        // User left a voice channel or switched to another channel
+        const house = await getUserHouse(guild, userId);
+        if (house) {
+          const startTime = userVoiceTimes[userId];
+          const currentTime = Date.now();
+          const timeSpent = currentTime - startTime;
+
+          // Calculate points based on time spent in the voice channel
+          const points = Math.floor(timeSpent / timeInterval) * pointsPerInterval;
+
+          // Add points and log them
+          addPointsForUser(house, points);
+          await logPoints(userId, house, points, 'Voice Channel Points');
+
+          // Remove the user's entry from userVoiceTimes
+          delete userVoiceTimes[userId];
+        }
+      }
+
+      if (newChannel) {
+        // User joined a voice channel
+        const humanMembers = newChannel.members.filter(member => !member.user.bot && !member.voice.mute && !member.voice.deaf);
+        if (humanMembers.size >= minimumVoice) {
+          userVoiceTimes[userId] = Date.now();
         }
       }
     }
-  }, timeInterval);
+  });
 }
 
 
@@ -309,9 +318,7 @@ async function pointHistory(db, interaction, targetType, targetId, limit) {
     } else if (targetType === 'house') {
       query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp DESC LIMIT ?`;
     }
-    console.log(`Executing query: ${query} with targetId: ${targetId} and limit: ${limit}`); // Debug output
     const rows = db.prepare(query).all(targetId, limit);
-    console.log(`Query result:`, rows); // Debug output
     resolve(rows);
   });
 }
