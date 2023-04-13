@@ -313,9 +313,9 @@ async function sendPaginatedEmbed(interaction, rows) {
     const startIndex = page * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const slicedRows = rows.slice(startIndex, endIndex);
-	const footer = `Page ${currentPage + 1} of ${Math.ceil(rows.length / itemsPerPage)}`
+    const footer = `Page ${currentPage + 1} of ${Math.ceil(rows.length / itemsPerPage)}`
     const formattedHistory = slicedRows.map((entry, index) => {
-      return `${startIndex + index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
+      return `${startIndex + index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
     }).join('\n');
 
     const embed = new EmbedBuilder()
