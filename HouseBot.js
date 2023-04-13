@@ -5,19 +5,22 @@ const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = requir
 const pointChoices = require('./pointChoices.json');
 const houseChoices = require('./houseChoices.json');
 const userPointsData = {};
-const { initializeDatabase, openDatabase } = require('./database');
+const Database = require('better-sqlite3');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent ] });
 
-initializeDatabase()
-  .then(() => {
-    console.log('Database initialized.');
-    // Start your bot here
-  })
-  .catch((err) => {
-    console.error('Failed to initialize the database:', err);
-  });
+const db = new Database('./points_log.db');
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS points_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    house TEXT NOT NULL,
+    points INTEGER NOT NULL,
+    timestamp INTEGER NOT NULL
+  )
+`);
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
@@ -71,12 +74,12 @@ const show_points = new SlashCommandBuilder()
     .setDescription("Displays the current house points");
 
 const displayPointHistory = new SlashCommandBuilder()
-    .setName('display_point_history')
+    .setName('point_history')
     .setDescription('Displays point history for a house or a user ID')
     .addSubcommand(subcommand => subcommand
         .setName('user')
         .setDescription('Displays point history for a user ID')
-        .addStringOption(option => option.setName('user_id')
+        .addStringOption(option => option.setName('user')
             .setDescription('Enter the user ID')
             .setRequired(true)
         )
@@ -88,9 +91,10 @@ const displayPointHistory = new SlashCommandBuilder()
     .addSubcommand(subcommand => subcommand
         .setName('house')
         .setDescription('Displays point history for a house')
-        .addStringOption(option => option.setName('house_name')
+        .addStringOption(option => option.setName('house')
             .setDescription('Enter the house name')
             .setRequired(true)
+			.addChoices(...require('./houseChoices.json'))
         )
         .addIntegerOption(option => option.setName('limit')
             .setDescription('Number of records to display (defaults to 20)')
@@ -118,7 +122,6 @@ client.on('ready', async () => {
     } else {
         console.error(`Guild not found with ID: ${guildID}`);
     }
-	  
 });
 
 client.on("messageCreate", async (message) => {
@@ -133,7 +136,7 @@ client.on("messageCreate", async (message) => {
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
-    const userId = message.author.id;
+    const userId = interaction.user.id;
     const { commandName } = interaction;
     if (commandName === 'add_points') {
         const house = interaction.options.getString('house');
@@ -152,7 +155,7 @@ client.on('interactionCreate', async interaction => {
     }
     house_points[house] += points;
     await interaction.reply(`${points} points added to ${house}.`);
-    await logPoints(userId, house, points, selectedChoice);
+    await logPoints(userId, house, points, selectedChoice.name);
     save_points();
 } else if (commandName === 'remove_points') {
     const house = interaction.options.getString('house');
@@ -184,30 +187,33 @@ client.on('interactionCreate', async interaction => {
         message += `${house}: ${points}\n`;
     }
     await interaction.reply(message);
-}else if (commandName === 'display_point_history') {
-        const subcommand = interaction.options.getSubcommand();
-        const limit = interaction.options.getInteger('limit') || 20;
+}else if (commandName === 'point_history') {
+    const subcommand = interaction.options.getSubcommand();
+    let targetType;
+    let targetId;
+    let limit = interaction.options.getInteger('limit') || 20;
 
-        let targetId;
-        let targetType;
+    if (subcommand === 'user') {
+      targetType = 'user';
+      targetId = interaction.options.getString('user');
+    } else if (subcommand === 'house') {
+      targetType = 'house';
+      targetId = interaction.options.getString('house');
+    } else {
+      return interaction.reply({ content: 'Invalid target type.', ephemeral: true });
+    }
+    try {
+      const pointHistoryArray = await pointHistory(db, interaction, targetType, targetId, limit);
+      const formattedHistory = pointHistoryArray.map((entry, index) => {
+        return `${index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
+      }).join('\n');
 
-        if (subcommand === 'user') {
-            targetType = 'user';
-            targetId = interaction.options.getString('user_id');
-        } else if (subcommand === 'house') {
-            targetType = 'house';
-            targetId = interaction.options.getString('house_name');
-        }
-
-        const pointHistory = await displayPointHistory(targetType, targetId, limit);
-        let message = `Displaying the most recent ${limit} point history entries for ${targetType} ${targetId}:\n\n`;
-
-        pointHistory.forEach(entry => {
-            message += `ID: ${entry.id}, ${targetType.charAt(0).toUpperCase() + targetType.slice(1)}: ${entry.targetId}, Points: ${entry.points}, Timestamp: ${entry.timestamp}\n`;
-        });
-
-        await interaction.reply(message);
-}});
+      await interaction.reply(`Point history:\n${formattedHistory}`);
+    } catch (error) {
+      console.error('Error fetching point history:', error);
+      await interaction.reply({ content: 'An error occurred while fetching point history.', ephemeral: true });
+    }
+  }});
 
 function addPointsForUser(house, points) {
     if (house_points.hasOwnProperty(house)) {
@@ -215,6 +221,12 @@ function addPointsForUser(house, points) {
         save_points();
     }
 }
+
+async function logPoints(userId, house, points, reason) {
+  const timestamp = Date.now();
+  db.prepare(`INSERT INTO point_history (user_id, house, points, reason, timestamp) VALUES (?, ?, ?, ?, ?)`).run(userId, house, points, reason, timestamp);
+}
+
 function calculatePoints(userId, house, message) {
   if (message.length < 10) {
     return;
@@ -254,7 +266,7 @@ function calculatePoints(userId, house, message) {
   const earnedPoints = userPointsData[userId].points;
   userPointsData[userId].points = 0;
   addPointsForUser(house, earnedPoints);
-  await logPoints(userId, house, points, 'Chat Message');
+  logPoints(userId, house, earnedPoints, 'Chat Message');
 }
 
 async function updateVoiceChannelPoints(guild) {
@@ -276,50 +288,24 @@ async function updateVoiceChannelPoints(guild) {
   }, timeInterval);
 }
 
-async function displayPointHistory(interaction, searchType, searchTerm, limit = 20) {
-  if (searchType !== 'user' && searchType !== 'house') {
-    // Send an error message if the searchType is invalid
-    return interaction.reply('Invalid search type. Please use "user" or "house".');
-  }
 
-  const db = await openDatabase();
-  let query = '';
-  if (searchType === 'user') {
-    query = `
-      SELECT * FROM point_history
-      WHERE user_id = ?
-      ORDER BY timestamp DESC
-      LIMIT ?
-    `;
-  } else {
-    query = `
-      SELECT * FROM point_history
-      WHERE house = ?
-      ORDER BY timestamp DESC
-      LIMIT ?
-    `;
-  }
-
-  try {
-    const rows = await db.all(query, [searchTerm, limit]);
-    await db.close();
-
-    if (rows.length === 0) {
-      return interaction.reply('No point history found.');
+async function pointHistory(db, interaction, targetType, targetId, limit) {
+  return new Promise((resolve, reject) => {
+    let query = '';
+    if (targetType === 'user') {
+      query = `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?`;
+    } else if (targetType === 'house') {
+      query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp DESC LIMIT ?`;
     }
-
-    // Format and display the results
-    const resultLines = rows.map((row) => {
-      const date = new Date(row.timestamp).toLocaleString();
-      return `${date} - User: ${row.user_id}, House: ${row.house}, Points: ${row.points}, Reason: ${row.reason}`;
-    });
-    const resultText = resultLines.join('\n');
-    return interaction.reply(`\`\`\`Point History:\n${resultText}\`\`\``);
-  } catch (err) {
-    console.error('Error querying point_history:', err);
-    return interaction.reply('An error occurred while fetching point history.');
-  }
+    console.log(`Executing query: ${query} with targetId: ${targetId} and limit: ${limit}`); // Debug output
+    const rows = db.prepare(query).all(targetId, limit);
+    console.log(`Query result:`, rows); // Debug output
+    resolve(rows);
+  });
 }
+
+
+
 
 function save_points() {
 let data = '';
