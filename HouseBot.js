@@ -270,7 +270,6 @@ function calculatePoints(userId, house, message) {
 async function updateVoiceChannelPoints(guild, client) {
   client.on('voiceStateUpdate', async (oldState, newState) => {
     const userId = newState.id;
-    console.log(`${userId}`);
     const oldChannel = oldState.channel;
     const newChannel = newState.channel;
 
@@ -288,6 +287,7 @@ async function updateVoiceChannelPoints(guild, client) {
 
           // Add points and log them
           addPointsForUser(house, points);
+	  console.log(`${userId}, ${house}, ${points}`);
           await logPoints(userId, house, points, 'Voice Channel Points');
 
           // Remove the user's entry from userVoiceTimes
