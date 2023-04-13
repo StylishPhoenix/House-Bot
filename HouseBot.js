@@ -345,7 +345,7 @@ async function sendPaginatedEmbed(interaction, rows) {
 
   const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: 60000 });
 
-  collector.on(Events.InteractionCreate, interaction => {
+  collector.on(Events.InteractionCreate, async interaction => {
     if (interaction.customId === 'previous') {
       if (currentPage > 0) currentPage--;
     } else if (interaction.customId === 'next') {
