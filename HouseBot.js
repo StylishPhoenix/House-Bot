@@ -5,7 +5,7 @@ const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = requir
 const pointChoices = require('./pointChoices.json');
 const houseChoices = require('./houseChoices.json');
 const userPointsData = {};
-const { initializeDatabase } = require('./database');
+const { initializeDatabase, openDatabase } = require('./database');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent ] });
@@ -133,7 +133,7 @@ client.on("messageCreate", async (message) => {
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
-    
+    const userId = message.author.id;
     const { commandName } = interaction;
     if (commandName === 'add_points') {
         const house = interaction.options.getString('house');
@@ -152,6 +152,7 @@ client.on('interactionCreate', async interaction => {
     }
     house_points[house] += points;
     await interaction.reply(`${points} points added to ${house}.`);
+    await logPoints(userId, house, points, selectedChoice);
     save_points();
 } else if (commandName === 'remove_points') {
     const house = interaction.options.getString('house');
@@ -253,6 +254,7 @@ function calculatePoints(userId, house, message) {
   const earnedPoints = userPointsData[userId].points;
   userPointsData[userId].points = 0;
   addPointsForUser(house, earnedPoints);
+  await logPoints(userId, house, points, 'Chat Message');
 }
 
 async function updateVoiceChannelPoints(guild) {
@@ -266,6 +268,7 @@ async function updateVoiceChannelPoints(guild) {
           const house = await getUserHouse(guild, member.id);
           if (house) {
             addPointsForUser(house, pointsPerInterval);
+	    await logPoints(userId, house, points, 'Voice Channel Points');
           }
         }
       }
@@ -273,33 +276,49 @@ async function updateVoiceChannelPoints(guild) {
   }, timeInterval);
 }
 
-async function displayPointHistory(targetType, targetId, limit = 20) {
-  // Check for valid targetType
-  if (targetType !== 'user' && targetType !== 'house') {
-    throw new Error('Invalid targetType');
+async function displayPointHistory(interaction, searchType, searchTerm, limit = 20) {
+  if (searchType !== 'user' && searchType !== 'house') {
+    // Send an error message if the searchType is invalid
+    return interaction.reply('Invalid search type. Please use "user" or "house".');
   }
 
-  // Connect to the database
   const db = await openDatabase();
-
-  // Query the database based on targetType
-  let results;
-  if (targetType === 'user') {
-    results = await db.all(
-      `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?`,
-      [targetId, limit]
-    );
-  } else if (targetType === 'house') {
-    results = await db.all(
-      `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp DESC LIMIT ?`,
-      [targetId, limit]
-    );
+  let query = '';
+  if (searchType === 'user') {
+    query = `
+      SELECT * FROM point_history
+      WHERE user_id = ?
+      ORDER BY timestamp DESC
+      LIMIT ?
+    `;
+  } else {
+    query = `
+      SELECT * FROM point_history
+      WHERE house = ?
+      ORDER BY timestamp DESC
+      LIMIT ?
+    `;
   }
 
-  // Close the database connection
-  await db.close();
+  try {
+    const rows = await db.all(query, [searchTerm, limit]);
+    await db.close();
 
-  return results;
+    if (rows.length === 0) {
+      return interaction.reply('No point history found.');
+    }
+
+    // Format and display the results
+    const resultLines = rows.map((row) => {
+      const date = new Date(row.timestamp).toLocaleString();
+      return `${date} - User: ${row.user_id}, House: ${row.house}, Points: ${row.points}, Reason: ${row.reason}`;
+    });
+    const resultText = resultLines.join('\n');
+    return interaction.reply(`\`\`\`Point History:\n${resultText}\`\`\``);
+  } catch (err) {
+    console.error('Error querying point_history:', err);
+    return interaction.reply('An error occurred while fetching point history.');
+  }
 }
 
 function save_points() {
