@@ -207,7 +207,7 @@ client.on('interactionCreate', async interaction => {
         });
 
         await interaction.reply(message);
-});
+}});
 
 function addPointsForUser(house, points) {
     if (house_points.hasOwnProperty(house)) {
