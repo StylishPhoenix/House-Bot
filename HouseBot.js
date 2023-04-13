@@ -270,7 +270,7 @@ function calculatePoints(userId, house, message) {
 async function updateVoiceChannelPoints(guild, client) {
   client.on('voiceStateUpdate', async (oldState, newState) => {
     const userId = newState.id;
-    console.log('${userId}');
+    console.log(`${userId}`);
     const oldChannel = oldState.channel;
     const newChannel = newState.channel;
 
