@@ -340,25 +340,21 @@ async function sendPaginatedEmbed(interaction, rows) {
         .setStyle('1')
     );
 
-  await interaction.reply({ embeds: [generateEmbed(currentPage)], components: [row], ephemeral: false });
+  await interaction.reply({ embeds: [generateEmbed(currentPage)], components: [row], ephemeral: true });
   const message = await interaction.fetchReply();
 
   const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: 60000 });
 
-  collector.on('collect', async i => {
-    if (i.user.id !== interaction.user.id) {
-      return await i.reply({ content: 'You did not initiate this command.', ephemeral: true });
-    }
-
-    if (i.customId === 'previous') {
+  collector.on(Events.InteractionCreate, interaction => {
+    if (interaction.customId === 'previous') {
       if (currentPage > 0) currentPage--;
-    } else if (i.customId === 'next') {
+    } else if (interaction.customId === 'next') {
       console.log(`Test`);
       if (currentPage < Math.ceil(rows.length / itemsPerPage) - 1) currentPage++;
 	  
     }
 
-    await i.update({ embeds: [generateEmbed(currentPage)], components: [row] });
+    await collector.update({ embeds: [generateEmbed(currentPage)], components: [row] });
   });
 
   collector.on('end', () => {
