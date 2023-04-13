@@ -210,8 +210,7 @@ client.on('interactionCreate', async interaction => {
       return interaction.reply({ content: 'Invalid target type.', ephemeral: true });
     }
     try {
-      const pointHistoryArray = await pointHistory(db, interaction, targetType, targetId, limit);
-      await sendPaginatedEmbed(interaction, pointHistoryArray);
+      await sendPaginatedEmbed(interaction, targetType, targetId);
     } catch (error) {
       console.error('Error fetching point history:', error);
       await interaction.reply({ content: 'An error occurred while fetching point history.', ephemeral: true });
@@ -331,8 +330,7 @@ async function updateVoiceChannelPoints(guild, client) {
 
 async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage = 0) {
   const limit = 10;
-  const pointHistoryArray = await pointHistory(db, targetType, targetId, currentPage * limit, limit);
-  const totalRecords = await getTotalRecords(db, targetType, targetId);
+  const pointHistoryArray = await pointHistory(db, targetType, targetId);
   const totalPages = Math.ceil(totalRecords / limit);
 
   const formattedHistory = pointHistoryArray.map((entry, index) => {
@@ -365,7 +363,7 @@ async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage
   }
 }
 
-async function pointHistory(db, interaction, targetType, targetId) {
+async function pointHistory(db, targetType, targetId) {
   return new Promise((resolve, reject) => {
     let query = '';
     if (targetType === 'user') {
