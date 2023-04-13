@@ -120,7 +120,29 @@ client.on("messageCreate", async (message) => {
 });
 
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
+    if (!interaction.isCommand() && !interaction.isButton()) return;
+    if (interaction.isButton()){ 
+      const buttonId = interaction.customId;
+      if (buttonId.startsWith('paginate_')) {
+         const parts = buttonId.split('_');
+         const command = parts[1];
+         const currentPage = parseInt(parts[2], 10);
+         const totalPages = parseInt(parts[3], 10);
+         const targetType = parts[4];
+         const targetId = parts[5];
+
+        if (command === 'prev') {
+         if (currentPage > 0) {
+          await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
+          }
+       } else if (command === 'next') {
+         if (currentPage < totalPages - 1) {
+           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage + 1);
+        }
+    }
+    await interaction.deferUpdate();
+    return;
+  }}
     const userId = interaction.user.id;
     const { commandName } = interaction;
     if (commandName === 'add_points') {
@@ -307,61 +329,41 @@ async function updateVoiceChannelPoints(guild, client) {
   });
 }
 
-async function sendPaginatedEmbed(interaction, rows) {
-  const itemsPerPage = 10;
-  let currentPage = 0;
+async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage = 0) {
+  const limit = 10;
+  const pointHistoryArray = await pointHistory(db, targetType, targetId, currentPage * limit, limit);
+  const totalRecords = await getTotalRecords(db, targetType, targetId);
+  const totalPages = Math.ceil(totalRecords / limit);
 
-  function generateEmbed(page) {
-    const startIndex = page * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const slicedRows = rows.slice(startIndex, endIndex);
-    const footer = `Page ${currentPage + 1} of ${Math.ceil(rows.length / itemsPerPage)}`
-    const formattedHistory = slicedRows.map((entry, index) => {
-      return `${startIndex + index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
-    }).join('\n\n');
+  const formattedHistory = pointHistoryArray.map((entry, index) => {
+    return `${index + 1 + currentPage * limit}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
+  }).join('\n');
 
-    const embed = new EmbedBuilder()
-      .setTitle('Point History')
-      .setDescription(formattedHistory)
-      .setFooter({ text: footer});
-
-    return embed;
-  }
+  const embed = new EmbedBuilder()
+    .setColor('#0099ff')
+    .setTitle('Point History')
+    .setDescription(formattedHistory);
 
   const row = new ActionRowBuilder()
     .addComponents(
       new ButtonBuilder()
-        .setCustomId('previous')
+        .setCustomId(`paginate_prev_${currentPage}_${totalPages}_${targetType}_${targetId}`)
         .setLabel('Previous')
-        .setStyle('1'),
+        .setStyle('1')
+        .setDisabled(currentPage === 0),
       new ButtonBuilder()
-        .setCustomId('next')
+        .setCustomId(`paginate_next_${currentPage}_${totalPages}_${targetType}_${targetId}`)
         .setLabel('Next')
         .setStyle('1')
+        .setDisabled(currentPage === totalPages - 1)
     );
 
-  await interaction.reply({ embeds: [generateEmbed(currentPage)], components: [row], ephemeral: true });
-  const message = await interaction.fetchReply();
-
-  const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: 60000 });
-
-  collector.on(Events.InteractionCreate, async interaction => {
-    if (interaction.customId === 'previous') {
-      if (currentPage > 0) currentPage--;
-    } else if (interaction.customId === 'next') {
-      console.log(`Test`);
-      if (currentPage < Math.ceil(rows.length / itemsPerPage) - 1) currentPage++;
-	  
-    }
-
-    await collector.update({ embeds: [generateEmbed(currentPage)], components: [row] });
-  });
-
-  collector.on('end', () => {
-    message.edit({ content: '', components: [] });
-  });
+  if (interaction.replied || interaction.deferred) {
+    await interaction.editReply({ embeds: [embed], components: [row] });
+  } else {
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+  }
 }
-
 
 async function pointHistory(db, interaction, targetType, targetId) {
   return new Promise((resolve, reject) => {
@@ -375,7 +377,6 @@ async function pointHistory(db, interaction, targetType, targetId) {
     resolve(rows);
   });
 }
-
 
 
 
