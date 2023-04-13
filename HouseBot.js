@@ -331,7 +331,7 @@ async function updateVoiceChannelPoints(guild, client) {
 async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage = 0) {
   const limit = 10;
   const pointHistoryArray = await pointHistory(db, targetType, targetId);
-  const totalPages = Math.ceil(totalRecords / limit);
+  const totalPages = Math.ceil(pointHistoryArray / limit);
 
   const formattedHistory = pointHistoryArray.map((entry, index) => {
     return `${index + 1 + currentPage * limit}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
