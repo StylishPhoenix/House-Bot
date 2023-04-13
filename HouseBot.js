@@ -353,6 +353,7 @@ async function sendPaginatedEmbed(interaction, rows) {
     if (i.customId === 'previous') {
       if (currentPage > 0) currentPage--;
     } else if (i.customId === 'next') {
+      console.log(`Test`);
       if (currentPage < Math.ceil(rows.length / itemsPerPage) - 1) currentPage++;
 	  
     }
