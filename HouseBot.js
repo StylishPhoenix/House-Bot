@@ -372,13 +372,15 @@ async function pointHistory(db, interaction, targetType, targetId) {
       query = `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp`;
     } else if (targetType === 'house') {
       query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp`;
+    } else {
+      reject(new Error('Invalid targetType'));
+      return;
     }
+
     const rows = db.prepare(query).all(targetId);
     resolve(rows);
   });
 }
-
-
 
 function save_points() {
 let data = '';
