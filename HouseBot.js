@@ -374,6 +374,7 @@ async function pointHistory(db, interaction, targetType, targetId) {
       query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp`;
     } else {
       reject(new Error('Invalid targetType'));
+      console.log(`${targetType});
       return;
     }
 
