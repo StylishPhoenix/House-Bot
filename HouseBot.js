@@ -280,6 +280,8 @@ async function updateVoiceChannelPoints(guild, client) {
         if (house) {
           const startTime = userVoiceTimes[userId];
           const currentTime = Date.now();
+		
+	 if (startTime && !isNaN(startTime)) { // Check if startTime is valid
           const timeSpent = currentTime - startTime;
 
           // Calculate points based on time spent in the voice channel
@@ -287,9 +289,8 @@ async function updateVoiceChannelPoints(guild, client) {
 
           // Add points and log them
           addPointsForUser(house, points);
-	  console.log(`${userId}, ${house}, ${points}`);
           await logPoints(userId, house, points, 'Voice Channel Points');
-
+	 }
           // Remove the user's entry from userVoiceTimes
           delete userVoiceTimes[userId];
         }
