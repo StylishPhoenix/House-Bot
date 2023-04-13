@@ -11,16 +11,8 @@ const Database = require('better-sqlite3');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent ] });
 
 const db = new Database('./points_log.db');
+createTableIfNotExists(db);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS points_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT NOT NULL,
-    house TEXT NOT NULL,
-    points INTEGER NOT NULL,
-    timestamp INTEGER NOT NULL
-  )
-`);
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
@@ -227,7 +219,23 @@ async function logPoints(userId, house, points, reason) {
   db.prepare(`INSERT INTO point_history (user_id, house, points, reason, timestamp) VALUES (?, ?, ?, ?, ?)`).run(userId, house, points, reason, timestamp);
 }
 
+function createTableIfNotExists(db) {
+  const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS point_history (
+      id INTEGER PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      house TEXT NOT NULL,
+      points INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      timestamp INTEGER NOT NULL
+    );
+  `;
+
+  db.exec(createTableQuery);
+}
+
 function calculatePoints(userId, house, message) {
+  const now = Date.now();	
   if (message.length < 10) {
     return;
   }
@@ -241,9 +249,10 @@ function calculatePoints(userId, house, message) {
     };
   }
 
-  const now = Date.now();
   const elapsedTime = now - userPointsData[userId].lastMessageTimestamp;
-
+  console.log(`${elapsedTime}`);
+  console.log(`${now}`);
+  console.log(`${userPointsData[userId].lastMessageTimestamp}`);
   if (elapsedTime >= 3600000) { //The maximum point cap resets every hour.
     userPointsData[userId].lastMessageTimestamp = now;
     userPointsData[userId].messagesInCurrentInterval = 0;
@@ -260,6 +269,9 @@ function calculatePoints(userId, house, message) {
 
   userPointsData[userId].messagesInCurrentInterval++;
 
+// Update the lastMessageTimestamp after processing the message.
+  userPointsData[userId].lastMessageTimestamp = now;
+  
   if (userPointsData[userId].points > 100) {
     userPointsData[userId].points = 100;
   }
