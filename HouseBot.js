@@ -60,11 +60,40 @@ const show_points = new SlashCommandBuilder()
     .setName("points")
     .setDescription("Displays the current house points");
 
+const displayPointHistory = new SlashCommandBuilder()
+    .setName('display_point_history')
+    .setDescription('Displays point history for a house or a user ID')
+    .addSubcommand(subcommand => subcommand
+        .setName('user')
+        .setDescription('Displays point history for a user ID')
+        .addStringOption(option => option.setName('user_id')
+            .setDescription('Enter the user ID')
+            .setRequired(true)
+        )
+        .addIntegerOption(option => option.setName('limit')
+            .setDescription('Number of records to display (defaults to 20)')
+            .setRequired(false)
+        )
+    )
+    .addSubcommand(subcommand => subcommand
+        .setName('house')
+        .setDescription('Displays point history for a house')
+        .addStringOption(option => option.setName('house_name')
+            .setDescription('Enter the house name')
+            .setRequired(true)
+        )
+        .addIntegerOption(option => option.setName('limit')
+            .setDescription('Number of records to display (defaults to 20)')
+            .setRequired(false)
+        )
+    );
+
 const commands = [
     addPoints.toJSON(),
     remove_points.toJSON(),
     show_points.toJSON(),
     add_point_amount.toJSON(),
+    displayPointHistory.toJSON(), 
     // Add other commands here
 ];
 
@@ -144,7 +173,29 @@ client.on('interactionCreate', async interaction => {
         message += `${house}: ${points}\n`;
     }
     await interaction.reply(message);
-}
+}else if (commandName === 'display_point_history') {
+        const subcommand = interaction.options.getSubcommand();
+        const limit = interaction.options.getInteger('limit') || 20;
+
+        let targetId;
+        let targetType;
+
+        if (subcommand === 'user') {
+            targetType = 'user';
+            targetId = interaction.options.getString('user_id');
+        } else if (subcommand === 'house') {
+            targetType = 'house';
+            targetId = interaction.options.getString('house_name');
+        }
+
+        const pointHistory = await displayPointHistory(targetType, targetId, limit);
+        let message = `Displaying the most recent ${limit} point history entries for ${targetType} ${targetId}:\n\n`;
+
+        pointHistory.forEach(entry => {
+            message += `ID: ${entry.id}, ${targetType.charAt(0).toUpperCase() + targetType.slice(1)}: ${entry.targetId}, Points: ${entry.points}, Timestamp: ${entry.timestamp}\n`;
+        });
+
+        await interaction.reply(message);
 });
 
 function addPointsForUser(house, points) {
