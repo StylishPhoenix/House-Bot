@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits, MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
+const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
@@ -313,31 +313,32 @@ async function sendPaginatedEmbed(interaction, rows) {
     const startIndex = page * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const slicedRows = rows.slice(startIndex, endIndex);
+	const footer = `Page ${currentPage + 1} of ${Math.ceil(rows.length / itemsPerPage)}`
     const formattedHistory = slicedRows.map((entry, index) => {
       return `${startIndex + index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
     }).join('\n');
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Point History')
       .setDescription(formattedHistory)
-      .setFooter(`Page ${page + 1} of ${Math.ceil(rows.length / itemsPerPage)}`);
+      .setFooter({ text: footer});
 
     return embed;
   }
 
-  const row = new MessageActionRow()
+  const row = new ActionRowBuilder()
     .addComponents(
-      new MessageButton()
+      new ButtonBuilder()
         .setCustomId('previous')
         .setLabel('Previous')
-        .setStyle('PRIMARY'),
-      new MessageButton()
+        .setStyle('1'),
+      new ButtonBuilder()
         .setCustomId('next')
         .setLabel('Next')
-        .setStyle('PRIMARY')
+        .setStyle('1')
     );
 
-  await interaction.reply({ embeds: [generateEmbed(currentPage)], components: [row], ephemeral: true });
+  await interaction.reply({ embeds: [generateEmbed(currentPage)], components: [row], ephemeral: false });
   const message = await interaction.fetchReply();
 
   const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: 60000 });
@@ -351,13 +352,14 @@ async function sendPaginatedEmbed(interaction, rows) {
       if (currentPage > 0) currentPage--;
     } else if (i.customId === 'next') {
       if (currentPage < Math.ceil(rows.length / itemsPerPage) - 1) currentPage++;
+	  
     }
 
     await i.update({ embeds: [generateEmbed(currentPage)], components: [row] });
   });
 
   collector.on('end', () => {
-    message.edit({ components: [] });
+    message.edit({ content: '', components: [] });
   });
 }
 
