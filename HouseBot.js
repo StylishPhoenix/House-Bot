@@ -263,6 +263,35 @@ async function updateVoiceChannelPoints(guild) {
   }, timeInterval);
 }
 
+async function displayPointHistory(targetType, targetId, limit = 20) {
+  // Check for valid targetType
+  if (targetType !== 'user' && targetType !== 'house') {
+    throw new Error('Invalid targetType');
+  }
+
+  // Connect to the database
+  const db = await openDatabase();
+
+  // Query the database based on targetType
+  let results;
+  if (targetType === 'user') {
+    results = await db.all(
+      `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?`,
+      [targetId, limit]
+    );
+  } else if (targetType === 'house') {
+    results = await db.all(
+      `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp DESC LIMIT ?`,
+      [targetId, limit]
+    );
+  }
+
+  // Close the database connection
+  await db.close();
+
+  return results;
+}
+
 function save_points() {
 let data = '';
 for (const [house, points] of Object.entries(house_points)) {
