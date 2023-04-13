@@ -5,9 +5,19 @@ const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = requir
 const pointChoices = require('./pointChoices.json');
 const houseChoices = require('./houseChoices.json');
 const userPointsData = {};
+const { initializeDatabase } = require('./database');
 
 // Initialize the bot
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent ] });
+
+initializeDatabase()
+  .then(() => {
+    console.log('Database initialized.');
+    // Start your bot here
+  })
+  .catch((err) => {
+    console.error('Failed to initialize the database:', err);
+  });
 
 // Define slash commands to add and remove house points
 const addPoints = new SlashCommandBuilder()
