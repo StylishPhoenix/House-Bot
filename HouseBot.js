@@ -316,7 +316,7 @@ async function sendPaginatedEmbed(interaction, rows) {
     const footer = `Page ${currentPage + 1} of ${Math.ceil(rows.length / itemsPerPage)}`
     const formattedHistory = slicedRows.map((entry, index) => {
       return `${startIndex + index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
-    }).join('\n');
+    }).join('\n\n');
 
     const embed = new EmbedBuilder()
       .setTitle('Point History')
