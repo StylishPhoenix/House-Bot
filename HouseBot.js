@@ -190,6 +190,7 @@ client.on('interactionCreate', async interaction => {
     }
 
     house_points[house] += points;
+    console.log(`${points}`);
     await interaction.reply(`${points} points added to ${house}.`);
     await logPoints(userId, house, points, addPointsReason);
     save_points();
