@@ -130,7 +130,6 @@ client.on('interactionCreate', async interaction => {
          const totalPages = parseInt(parts[3], 10);
          const targetType = parts[4];
          const targetId = parts[5];
-         console.log(`${command}, ${currentPage}, ${totalPages}, ${targetType}, ${targetId}`);
         if (command === 'prev') {
          if (currentPage > 0) {
           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
@@ -141,7 +140,6 @@ client.on('interactionCreate', async interaction => {
            await sendPaginatedEmbed(interaction, targetType, targetId, currentPage + 1);
         }
     }
-    //await interaction.deferUpdate();
     return;
   }}
     const userId = interaction.user.id;
