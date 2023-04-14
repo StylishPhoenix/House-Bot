@@ -367,9 +367,9 @@ async function pointHistory(db, targetType, targetId) {
   return new Promise((resolve, reject) => {
     let query = '';
     if (targetType === 'user') {
-      query = `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp`;
+      query = `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp DESC`;
     } else if (targetType === 'house') {
-      query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp`;
+      query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp DESC`;
     } else {
       reject(new Error('Invalid targetType'));
       return;
