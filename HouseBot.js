@@ -45,6 +45,7 @@ const remove_points = new SlashCommandBuilder()
     )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
+    .addStringOption(option => option.setName("reasoning").setDescription("Put Reason here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
 
@@ -59,6 +60,7 @@ const add_point_amount = new SlashCommandBuilder()
     )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
+    .addStringOption(option => option.setName("reasoning").setDescription("Put Reason here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
 
@@ -166,6 +168,7 @@ client.on('interactionCreate', async interaction => {
 } else if (commandName === 'remove_points') {
     const house = interaction.options.getString('house');
     const points = interaction.options.getInteger('points');
+    const removePointsReason = interaction.options.getString('reasoning');
 
     if (!house_points.hasOwnProperty(house)) {
         await interaction.reply(`Invalid house name: ${house}`);
@@ -174,10 +177,12 @@ client.on('interactionCreate', async interaction => {
 
     house_points[house] -= points;
     await interaction.reply(`${points} points removed from ${house}.`);
+    await logPoints(userId, house, points, removePointsReason);
     save_points();
 } else if (commandName === 'add_point_amount') {
     const house = interaction.options.getString('house');
     const points = interaction.options.getInteger('points');
+    const addPointsReason = interaction.options.getString('reasoning');
 
     if (!house_points.hasOwnProperty(house)) {
         await interaction.reply(`Invalid house name: ${house}`);
@@ -186,6 +191,7 @@ client.on('interactionCreate', async interaction => {
 
     house_points[house] += points;
     await interaction.reply(`${points} points added to ${house}.`);
+    await logPoints(userId, house, points, addPointsReason);
     save_points();
 } else if (commandName === 'points') {
     let message = 'Current house points:\n';
