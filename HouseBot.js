@@ -138,6 +138,7 @@ client.on('interactionCreate', async interaction => {
        } else if (command === 'next') {
          if (currentPage < totalPages - 1) {
           currentPage++;
+          console.log(`test`);
            await sendPaginatedEmbed(interaction, targetType, targetId, currentPage);
         }
     }
