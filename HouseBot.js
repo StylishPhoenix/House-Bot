@@ -130,7 +130,7 @@ client.on('interactionCreate', async interaction => {
          const totalPages = parseInt(parts[3], 10);
          const targetType = parts[4];
          const targetId = parts[5];
-
+        console.log(`test`);
         if (command === 'prev') {
          if (currentPage > 0) {
           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
@@ -337,7 +337,7 @@ async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage
     .map((entry, index) => {
       return `${index + 1 + startIndex}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
     }).join('\n');
-    
+
   const embed = new EmbedBuilder()
     .setColor('#0099ff')
     .setTitle('Point History')
