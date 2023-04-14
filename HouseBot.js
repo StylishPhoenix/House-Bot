@@ -133,14 +133,12 @@ client.on('interactionCreate', async interaction => {
          console.log(`${command}, ${currentPage}, ${totalPages}, ${targetType}, ${targetId}`);
         if (command === 'prev') {
          if (currentPage > 0) {
-          currentPage--;
-          await sendPaginatedEmbed(interaction, targetType, targetId, currentPage);
+          await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
           }
        } else if (command === 'next') {
 
          if (currentPage < totalPages - 1) {
-          currentPage++;
-           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage);
+           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage + 1);
         }
     }
     await interaction.deferUpdate();
