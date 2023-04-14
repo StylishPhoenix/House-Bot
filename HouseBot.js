@@ -130,7 +130,6 @@ client.on('interactionCreate', async interaction => {
          const totalPages = parseInt(parts[3], 10);
          const targetType = parts[4];
          const targetId = parts[5];
-        console.log(`test`);
         if (command === 'prev') {
          if (currentPage > 0) {
           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
@@ -209,7 +208,7 @@ client.on('interactionCreate', async interaction => {
       return interaction.reply({ content: 'Invalid target type.', ephemeral: true });
     }
     try {
-      await sendPaginatedEmbed(interaction, targetType, targetId);
+      await sendPaginatedEmbed(interaction, targetType, targetId, currentPage = 0);
     } catch (error) {
       console.error('Error fetching point history:', error);
       await interaction.reply({ content: 'An error occurred while fetching point history.', ephemeral: true });
@@ -327,7 +326,7 @@ async function updateVoiceChannelPoints(guild, client) {
   });
 }
 
-async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage = 0) {
+async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage) {
   const limit = 10;
   const pointHistoryArray = await pointHistory(db, targetType, targetId);
   const totalPages = Math.ceil(pointHistoryArray / limit);
