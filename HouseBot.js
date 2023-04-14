@@ -250,17 +250,18 @@ function createTableIfNotExists(db) {
 }
 
 function calculatePoints(userId, house, message) {
-  const now = Date.now();	
+  const now = Date.now(); 
   if (message.length < 10) {
     return;
   }
   const pointsPerMessage = [25, 20, 15, 10, 10, 5, 5, 5, 5];
-	
+
   if (!userPointsData.hasOwnProperty(userId)) {
     userPointsData[userId] = {
       lastMessageTimestamp: Date.now() - 30000,
       points: 0,
       messagesInCurrentInterval: 0,
+      pointsScheduled: false,
     };
   }
 
@@ -281,17 +282,30 @@ function calculatePoints(userId, house, message) {
 
   userPointsData[userId].messagesInCurrentInterval++;
 
-// Update the lastMessageTimestamp after processing the message.
+  // Update the lastMessageTimestamp after processing the message.
   userPointsData[userId].lastMessageTimestamp = now;
-  
+
   if (userPointsData[userId].points > 100) {
     userPointsData[userId].points = 100;
   }
-  const earnedPoints = userPointsData[userId].points;
-  userPointsData[userId].points = 0;
-  addPointsForUser(house, earnedPoints);
-  logPoints(userId, house, earnedPoints, 'Chat Message');
+
+  // Schedule the addition of points every hour
+  if (!userPointsData[userId].pointsScheduled) {
+    scheduleAddPoints(userId, house);
+  }
 }
+
+function scheduleAddPoints(userId, house) {
+  userPointsData[userId].pointsScheduled = true;
+  setTimeout(() => {
+    const earnedPoints = userPointsData[userId].points;
+    userPointsData[userId].points = 0;
+    addPointsForUser(house, earnedPoints);
+    logPoints(userId, house, earnedPoints, 'Chat Message');
+    userPointsData[userId].pointsScheduled = false;
+  }, 3600000); // 1 hour in milliseconds
+}
+
 
 async function updateVoiceChannelPoints(guild, client) {
   client.on('voiceStateUpdate', async (oldState, newState) => {
