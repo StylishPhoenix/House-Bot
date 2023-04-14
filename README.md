@@ -15,7 +15,12 @@ Adds points based on how long a user is in a voice channel.
 # Installation
 Clone this repository with `git clone https://github.com/StylishPhoenix/House-Bot.git`
 
-Run `npm install discord.js@latest` to install the required dependencies.
+Run the following to install the required dependencies.
+```
+npm install discord.js@latest
+npm install better-sqlite3
+npm install sqlite3
+```
 
 
 Create a `config.json` file in the same folder as HouseBot.js.  The file should look like this
