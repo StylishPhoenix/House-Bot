@@ -132,11 +132,13 @@ client.on('interactionCreate', async interaction => {
          const targetId = parts[5];
         if (command === 'prev') {
          if (currentPage > 0) {
-          await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
+          currentPage--;
+          await sendPaginatedEmbed(interaction, targetType, targetId, currentPage);
           }
        } else if (command === 'next') {
          if (currentPage < totalPages - 1) {
-           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage + 1);
+          currentPage++;
+           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage);
         }
     }
     await interaction.deferUpdate();
@@ -329,7 +331,6 @@ async function updateVoiceChannelPoints(guild, client) {
 async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage) {
   const limit = 10;
   const pointHistoryArray = await pointHistory(db, targetType, targetId);
-  console.log(`${pointHistoryArray}`);
   const totalPages = Math.ceil(pointHistoryArray / limit);
   const startIndex = currentPage * limit;
   const formattedHistory = pointHistoryArray
