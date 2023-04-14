@@ -224,6 +224,7 @@ function addPointsForUser(house, points) {
 
 async function logPoints(userId, house, points, reason) {
   const timestamp = Date.now();
+  if (points = 0) return;
   db.prepare(`INSERT INTO point_history (user_id, house, points, reason, timestamp) VALUES (?, ?, ?, ?, ?)`).run(userId, house, points, reason, timestamp);
 }
 
