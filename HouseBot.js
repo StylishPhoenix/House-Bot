@@ -117,34 +117,23 @@ client.on("messageCreate", async (message) => {
   const userId = message.author.id;
   const house = await getUserHouse(message.guild, userId);
   if (!house) return;
-
   calculatePoints(userId, house, message.content);
 });
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand() && !interaction.isButton()) return;
     if (interaction.isButton()){ 
-      const buttonId = interaction.customId;
-      if (buttonId.startsWith('paginate_')) {
-         const parts = buttonId.split('_');
-         const command = parts[1];
-         const currentPage = parseInt(parts[2], 10);
-         const totalPages = parseInt(parts[3], 10);
-         const targetType = parts[4];
-         const targetId = parts[5];
-	 const userID = parseInt(parts[6], 10);
-        if (command === 'prev' && interaction.author.id == userID) {
-         if (currentPage > 0) {
-          await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
-          }
-       } else if (command === 'next' && interaction.author.id == userID) {
+        const [action, direction, currentPage, totalPages, targetType, targetId, userId] = interaction.customId.split('_');
+  if (action === 'paginate') {
+	const newPage = direction === 'prev' ? parseInt(currentPage) - 1 : parseInt(currentPage) + 1;
+    const paginatedEmbed = await createPaginatedEmbed(interaction, targetType, targetId, newPage);
 
-         if (currentPage < totalPages - 1) {
-           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage + 1);
-        }
-    }
+    await interaction.deferUpdate();
+    await interaction.editReply(paginatedEmbed);
+	
+  }
     return;
-  }}
+	}
     const userId = interaction.user.id;
     const { commandName } = interaction;
     if (commandName === 'add_points') {
@@ -201,7 +190,8 @@ client.on('interactionCreate', async interaction => {
     }
     await interaction.reply(message);
 }else if (commandName === 'point_history') {
-    const subcommand = interaction.options.getSubcommand();
+   try{
+   const subcommand = interaction.options.getSubcommand();
     let targetType;
     let targetId;
 
@@ -214,12 +204,12 @@ client.on('interactionCreate', async interaction => {
     } else {
       return interaction.reply({ content: 'Invalid target type.', ephemeral: true });
     }
-    try {
-      await sendPaginatedEmbed(interaction, targetType, targetId, currentPage = 0);
-    } catch (error) {
-      console.error('Error fetching point history:', error);
-      await interaction.reply({ content: 'An error occurred while fetching point history.', ephemeral: true });
-    }
+    // Call createPaginatedEmbed function and send the result as a reply
+    const paginatedEmbed = await createPaginatedEmbed(interaction, targetType, targetId, 0);
+    await interaction.reply(paginatedEmbed);
+   }catch{
+		await interaction.reply("It doesn't appear that this house has history.");
+		}
   }});
 
 function addPointsForUser(house, points) {
@@ -259,13 +249,12 @@ function calculatePoints(userId, house, message) {
 
   if (!userPointsData.hasOwnProperty(userId)) {
     userPointsData[userId] = {
-      lastMessageTimestamp: Date.now() - 30000,
+      lastMessageTimestamp: Date.now() - 60000,
       points: 0,
       messagesInCurrentInterval: 0,
       pointsScheduled: false,
     };
   }
-
   const elapsedTime = now - userPointsData[userId].lastMessageTimestamp;
   if (elapsedTime >= 3600000) { //The maximum point cap resets every hour.
     userPointsData[userId].lastMessageTimestamp = now;
@@ -289,7 +278,6 @@ function calculatePoints(userId, house, message) {
   if (userPointsData[userId].points > 100) {
     userPointsData[userId].points = 100;
   }
-
   // Schedule the addition of points every hour
   if (!userPointsData[userId].pointsScheduled) {
     scheduleAddPoints(userId, house);
@@ -348,12 +336,12 @@ async function updateVoiceChannelPoints(guild, client) {
   });
 }
 
-async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage) {
+async function createPaginatedEmbed(interaction, targetType, targetId, currentPage) {
   const limit = 10;
   const pointHistoryArray = await pointHistory(db, targetType, targetId);
   const totalPages = Math.ceil(pointHistoryArray.length / limit);
   const startIndex = currentPage * limit;
-  const userID = interaction.author.id;
+  const userID = interaction.user.id;
   const formattedHistory = pointHistoryArray
     .slice(startIndex, startIndex + limit)
     .map((entry, index) => {
@@ -379,11 +367,7 @@ async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage
         .setDisabled(currentPage === totalPages - 1)
     );
 
-  if (interaction.replied || interaction.deferred) {
-    await interaction.editReply({ embeds: [embed], components: [row], ephemeral: true });
-  } else {
-    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-  }
+  return { embeds: [embed], components: [row] };
 }
 
 async function pointHistory(db, targetType, targetId) {
