@@ -387,6 +387,7 @@ async function pointHistory(db, targetType, targetId) {
   });
 }
 
+
 function save_points() {
 let data = '';
 for (const [house, points] of Object.entries(house_points)) {
