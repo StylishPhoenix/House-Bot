@@ -126,7 +126,7 @@ client.on('interactionCreate', async interaction => {
         const [action, direction, currentPage, totalPages, targetType, targetId, userId] = interaction.customId.split('_');
   if (action === 'paginate') {
 	const newPage = direction === 'prev' ? parseInt(currentPage) - 1 : parseInt(currentPage) + 1;
-    const paginatedEmbed = await createPaginatedEmbed(interaction, targetType, targetId, newPage);
+    const paginatedEmbed = await createPaginatedEmbed(client, interaction, targetType, targetId, newPage);
 
     await interaction.deferUpdate();
     await interaction.editReply(paginatedEmbed);
@@ -205,10 +205,10 @@ client.on('interactionCreate', async interaction => {
       return interaction.reply({ content: 'Invalid target type.', ephemeral: true });
     }
     // Call createPaginatedEmbed function and send the result as a reply
-    const paginatedEmbed = await createPaginatedEmbed(interaction, targetType, targetId, 0);
+    const paginatedEmbed = await createPaginatedEmbed(client, interaction, targetType, targetId, 0);
     await interaction.reply(paginatedEmbed);
    }catch{
-		await interaction.reply("It doesn't appear that this house has history.");
+		await interaction.reply("It doesn't appear that this house has history yet.");
 		}
   }});
 
@@ -290,7 +290,7 @@ function scheduleAddPoints(userId, house) {
     const earnedPoints = userPointsData[userId].points;
     userPointsData[userId].points = 0;
     addPointsForUser(house, earnedPoints);
-    logPoints(userId, house, earnedPoints, 'Chat Message');
+    logPoints(userId, house, earnedPoints, 'Chat Messages');
     userPointsData[userId].pointsScheduled = false;
   }, 3600000); // 1 hour in milliseconds
 }
@@ -336,22 +336,27 @@ async function updateVoiceChannelPoints(guild, client) {
   });
 }
 
-async function createPaginatedEmbed(interaction, targetType, targetId, currentPage) {
+
+async function createPaginatedEmbed(client, interaction, targetType, targetId, currentPage) {
   const limit = 10;
   const pointHistoryArray = await pointHistory(db, targetType, targetId);
   const totalPages = Math.ceil(pointHistoryArray.length / limit);
   const startIndex = currentPage * limit;
   const userID = interaction.user.id;
-  const formattedHistory = pointHistoryArray
+  const footer = { text: `Page ${currentPage + 1} of ${totalPages}` };
+  const formattedHistory = await Promise.all(pointHistoryArray
     .slice(startIndex, startIndex + limit)
-    .map((entry, index) => {
-      return `${index + 1 + startIndex}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
-    }).join('\n\n');
+    .map( async (entry, index) => {
+	  const user = await client.users.fetch(entry.user_id);
+      return `${index + 1 + startIndex}. User: ${user}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
+    }));
+	const joinedHistory = formattedHistory.join('\n\n');
 
   const embed = new EmbedBuilder()
     .setColor('#0099ff')
     .setTitle('Point History')
-    .setDescription(formattedHistory);
+	.setFooter(footer)
+    .setDescription(joinedHistory);
 
   const row = new ActionRowBuilder()
     .addComponents(
