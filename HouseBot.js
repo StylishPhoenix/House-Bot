@@ -329,14 +329,13 @@ async function updateVoiceChannelPoints(guild, client) {
 async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage) {
   const limit = 10;
   const pointHistoryArray = await pointHistory(db, targetType, targetId);
-  console.log(`${pointHistoryArray}`);
   const totalPages = Math.ceil(pointHistoryArray.length / limit);
   const startIndex = currentPage * limit;
   const formattedHistory = pointHistoryArray
     .slice(startIndex, startIndex + limit)
     .map((entry, index) => {
-      return `${index + 1 + startIndex}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
-    }).join('\n');
+      return `${index + 1 + startIndex}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
+    }).join('\n\n');
 
   const embed = new EmbedBuilder()
     .setColor('#0099ff')
