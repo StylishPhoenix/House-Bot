@@ -44,5 +44,7 @@ Available slash commands:
 
 `/points`: Display the current points for each house
 
+`/point_history`: Displays a embed that contains 10 entries of a house or user's point history.  Using the arrow buttons will allow you to scroll through the list.
+
 # Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
