@@ -358,9 +358,9 @@ async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage
     );
 
   if (interaction.replied || interaction.deferred) {
-    await interaction.editReply({ embeds: [embed], components: [row] });
+    await interaction.editReply({ embeds: [embed], components: [row], ephemeral: true });
   } else {
-    await interaction.reply({ embeds: [embed], components: [row] });
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
   }
 }
 
