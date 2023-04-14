@@ -302,7 +302,7 @@ async function updateVoiceChannelPoints(guild, client) {
     const oldChannel = oldState.channel;
     const newChannel = newState.channel;
 
-    if (oldChannel !== newChannel) {
+    if (oldChannel !== newChannel || oldState.mute !== newState.mute || oldState.deaf !== newState.deaf) {
       if (oldChannel) {
         // User left a voice channel or switched to another channel
         const house = await getUserHouse(guild, userId);
