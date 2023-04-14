@@ -141,7 +141,7 @@ client.on('interactionCreate', async interaction => {
            await sendPaginatedEmbed(interaction, targetType, targetId, currentPage + 1);
         }
     }
-    await interaction.deferUpdate();
+    await interaction.followUp();
     return;
   }}
     const userId = interaction.user.id;
