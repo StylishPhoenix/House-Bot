@@ -132,11 +132,12 @@ client.on('interactionCreate', async interaction => {
          const totalPages = parseInt(parts[3], 10);
          const targetType = parts[4];
          const targetId = parts[5];
-        if (command === 'prev') {
+	 const userID = parseInt(parts[6], 10);
+        if (command === 'prev' && interaction.author.id == userID) {
          if (currentPage > 0) {
           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
           }
-       } else if (command === 'next') {
+       } else if (command === 'next' && interaction.author.id == userID) {
 
          if (currentPage < totalPages - 1) {
            await sendPaginatedEmbed(interaction, targetType, targetId, currentPage + 1);
@@ -352,6 +353,7 @@ async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage
   const pointHistoryArray = await pointHistory(db, targetType, targetId);
   const totalPages = Math.ceil(pointHistoryArray.length / limit);
   const startIndex = currentPage * limit;
+  const userID = interaction.author.id;
   const formattedHistory = pointHistoryArray
     .slice(startIndex, startIndex + limit)
     .map((entry, index) => {
@@ -366,12 +368,12 @@ async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage
   const row = new ActionRowBuilder()
     .addComponents(
       new ButtonBuilder()
-        .setCustomId(`paginate_prev_${currentPage}_${totalPages}_${targetType}_${targetId}`)
+        .setCustomId(`paginate_prev_${currentPage}_${totalPages}_${targetType}_${targetId}_${userID}`)
         .setLabel('Previous')
         .setStyle('1')
         .setDisabled(currentPage === 0),
       new ButtonBuilder()
-        .setCustomId(`paginate_next_${currentPage}_${totalPages}_${targetType}_${targetId}`)
+        .setCustomId(`paginate_next_${currentPage}_${totalPages}_${targetType}_${targetId}_${userID}`)
         .setLabel('Next')
         .setStyle('1')
         .setDisabled(currentPage === totalPages - 1)
