@@ -190,7 +190,6 @@ client.on('interactionCreate', async interaction => {
     }
 
     house_points[house] += points;
-    console.log(`${points}`);
     await interaction.reply(`${points} points added to ${house}.`);
     await logPoints(userId, house, points, addPointsReason);
     save_points();
@@ -269,7 +268,7 @@ function calculatePoints(userId, house, message) {
   if (elapsedTime >= 3600000) { //The maximum point cap resets every hour.
     userPointsData[userId].lastMessageTimestamp = now;
     userPointsData[userId].messagesInCurrentInterval = 0;
-  } else if (elapsedTime < 30000) { //The minimum interval between messages.  If the user spams out a bunch, the system will update the time of their last message in order to prevent attempts to spam until they are rewarded.
+  } else if (elapsedTime < 60000) { //The minimum interval between messages.  If the user spams out a bunch, the system will update the time of their last message in order to prevent attempts to spam until they are rewarded.
     userPointsData[userId].lastMessageTimestamp = now;
     return;
   }
