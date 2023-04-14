@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits } = require('discord.js');
+const { Client, GatewayIntentBits, Permissions, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events } = require('discord.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { token, guildID, timeInterval, pointsPerInterval, minimumVoice } = require('./config.json');
 const pointChoices = require('./pointChoices.json');
@@ -45,6 +45,7 @@ const remove_points = new SlashCommandBuilder()
     )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
+    .addStringOption(option => option.setName("reasoning").setDescription("Put Reason here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
 
@@ -59,6 +60,7 @@ const add_point_amount = new SlashCommandBuilder()
     )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
+    .addStringOption(option => option.setName("reasoning").setDescription("Put Reason here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
 
@@ -120,7 +122,28 @@ client.on("messageCreate", async (message) => {
 });
 
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
+    if (!interaction.isCommand() && !interaction.isButton()) return;
+    if (interaction.isButton()){ 
+      const buttonId = interaction.customId;
+      if (buttonId.startsWith('paginate_')) {
+         const parts = buttonId.split('_');
+         const command = parts[1];
+         const currentPage = parseInt(parts[2], 10);
+         const totalPages = parseInt(parts[3], 10);
+         const targetType = parts[4];
+         const targetId = parts[5];
+        if (command === 'prev') {
+         if (currentPage > 0) {
+          await sendPaginatedEmbed(interaction, targetType, targetId, currentPage - 1);
+          }
+       } else if (command === 'next') {
+
+         if (currentPage < totalPages - 1) {
+           await sendPaginatedEmbed(interaction, targetType, targetId, currentPage + 1);
+        }
+    }
+    return;
+  }}
     const userId = interaction.user.id;
     const { commandName } = interaction;
     if (commandName === 'add_points') {
@@ -145,6 +168,7 @@ client.on('interactionCreate', async interaction => {
 } else if (commandName === 'remove_points') {
     const house = interaction.options.getString('house');
     const points = interaction.options.getInteger('points');
+    const removePointsReason = interaction.options.getString('reasoning');
 
     if (!house_points.hasOwnProperty(house)) {
         await interaction.reply(`Invalid house name: ${house}`);
@@ -153,10 +177,12 @@ client.on('interactionCreate', async interaction => {
 
     house_points[house] -= points;
     await interaction.reply(`${points} points removed from ${house}.`);
+    await logPoints(userId, house, points, removePointsReason);
     save_points();
 } else if (commandName === 'add_point_amount') {
     const house = interaction.options.getString('house');
     const points = interaction.options.getInteger('points');
+    const addPointsReason = interaction.options.getString('reasoning');
 
     if (!house_points.hasOwnProperty(house)) {
         await interaction.reply(`Invalid house name: ${house}`);
@@ -165,6 +191,7 @@ client.on('interactionCreate', async interaction => {
 
     house_points[house] += points;
     await interaction.reply(`${points} points added to ${house}.`);
+    await logPoints(userId, house, points, addPointsReason);
     save_points();
 } else if (commandName === 'points') {
     let message = 'Current house points:\n';
@@ -176,7 +203,6 @@ client.on('interactionCreate', async interaction => {
     const subcommand = interaction.options.getSubcommand();
     let targetType;
     let targetId;
-    let limit = interaction.options.getInteger('limit') || 10;
 
     if (subcommand === 'user') {
       targetType = 'user';
@@ -188,12 +214,7 @@ client.on('interactionCreate', async interaction => {
       return interaction.reply({ content: 'Invalid target type.', ephemeral: true });
     }
     try {
-      const pointHistoryArray = await pointHistory(db, interaction, targetType, targetId, limit);
-      const formattedHistory = pointHistoryArray.map((entry, index) => {
-        return `${index + 1}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
-      }).join('\n');
-
-      await interaction.reply(`Point history:\n${formattedHistory}`);
+      await sendPaginatedEmbed(interaction, targetType, targetId, currentPage = 0);
     } catch (error) {
       console.error('Error fetching point history:', error);
       await interaction.reply({ content: 'An error occurred while fetching point history.', ephemeral: true });
@@ -209,6 +230,7 @@ function addPointsForUser(house, points) {
 
 async function logPoints(userId, house, points, reason) {
   const timestamp = Date.now();
+  if (points == 0) return;
   db.prepare(`INSERT INTO point_history (user_id, house, points, reason, timestamp) VALUES (?, ?, ?, ?, ?)`).run(userId, house, points, reason, timestamp);
 }
 
@@ -246,7 +268,7 @@ function calculatePoints(userId, house, message) {
   if (elapsedTime >= 3600000) { //The maximum point cap resets every hour.
     userPointsData[userId].lastMessageTimestamp = now;
     userPointsData[userId].messagesInCurrentInterval = 0;
-  } else if (elapsedTime < 30000) { //The minimum interval between messages.  If the user spams out a bunch, the system will update the time of their last message in order to prevent attempts to spam until they are rewarded.
+  } else if (elapsedTime < 60000) { //The minimum interval between messages.  If the user spams out a bunch, the system will update the time of their last message in order to prevent attempts to spam until they are rewarded.
     userPointsData[userId].lastMessageTimestamp = now;
     return;
   }
@@ -284,6 +306,8 @@ async function updateVoiceChannelPoints(guild, client) {
         if (house) {
           const startTime = userVoiceTimes[userId];
           const currentTime = Date.now();
+		
+	 if (startTime && !isNaN(startTime)) { // Check if startTime is valid
           const timeSpent = currentTime - startTime;
 
           // Calculate points based on time spent in the voice channel
@@ -292,7 +316,7 @@ async function updateVoiceChannelPoints(guild, client) {
           // Add points and log them
           addPointsForUser(house, points);
           await logPoints(userId, house, points, 'Voice Channel Points');
-
+	 }
           // Remove the user's entry from userVoiceTimes
           delete userVoiceTimes[userId];
         }
@@ -309,22 +333,59 @@ async function updateVoiceChannelPoints(guild, client) {
   });
 }
 
+async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage) {
+  const limit = 10;
+  const pointHistoryArray = await pointHistory(db, targetType, targetId);
+  const totalPages = Math.ceil(pointHistoryArray.length / limit);
+  const startIndex = currentPage * limit;
+  const formattedHistory = pointHistoryArray
+    .slice(startIndex, startIndex + limit)
+    .map((entry, index) => {
+      return `${index + 1 + startIndex}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}, Reason: ${entry.reason}`;
+    }).join('\n\n');
 
-async function pointHistory(db, interaction, targetType, targetId, limit) {
+  const embed = new EmbedBuilder()
+    .setColor('#0099ff')
+    .setTitle('Point History')
+    .setDescription(formattedHistory);
+
+  const row = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(`paginate_prev_${currentPage}_${totalPages}_${targetType}_${targetId}`)
+        .setLabel('Previous')
+        .setStyle('1')
+        .setDisabled(currentPage === 0),
+      new ButtonBuilder()
+        .setCustomId(`paginate_next_${currentPage}_${totalPages}_${targetType}_${targetId}`)
+        .setLabel('Next')
+        .setStyle('1')
+        .setDisabled(currentPage === totalPages - 1)
+    );
+
+  if (interaction.replied || interaction.deferred) {
+    await interaction.editReply({ embeds: [embed], components: [row], ephemeral: true });
+  } else {
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+  }
+}
+
+async function pointHistory(db, targetType, targetId) {
   return new Promise((resolve, reject) => {
     let query = '';
     if (targetType === 'user') {
-      query = `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?`;
+      query = `SELECT * FROM point_history WHERE user_id = ? ORDER BY timestamp DESC`;
     } else if (targetType === 'house') {
-      query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp DESC LIMIT ?`;
+      query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp DESC`;
+    } else {
+      reject(new Error('Invalid targetType'));
+      return;
     }
-    const rows = db.prepare(query).all(targetId, limit);
+    
+    const rows = db.prepare(query).all(targetId);
     resolve(rows);
   });
 }
-
-
-
 
 function save_points() {
 let data = '';
