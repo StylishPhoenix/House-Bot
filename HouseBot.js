@@ -198,7 +198,6 @@ client.on('interactionCreate', async interaction => {
     const subcommand = interaction.options.getSubcommand();
     let targetType;
     let targetId;
-    let limit = interaction.options.getInteger('limit') || 10;
 
     if (subcommand === 'user') {
       targetType = 'user';
@@ -332,11 +331,13 @@ async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage
   const limit = 10;
   const pointHistoryArray = await pointHistory(db, targetType, targetId);
   const totalPages = Math.ceil(pointHistoryArray / limit);
-
-  const formattedHistory = pointHistoryArray.map((entry, index) => {
-    return `${index + 1 + currentPage * limit}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
-  }).join('\n');
-
+  const startIndex = currentPage * limit;
+  const formattedHistory = pointHistoryArray
+    .slice(startIndex, startIndex + limit)
+    .map((entry, index) => {
+      return `${index + 1 + startIndex}. User: ${entry.user_id}, House: ${entry.house}, Points: ${entry.points}, Timestamp: ${new Date(entry.timestamp).toLocaleString()}`;
+    }).join('\n');
+    
   const embed = new EmbedBuilder()
     .setColor('#0099ff')
     .setTitle('Point History')
@@ -359,7 +360,7 @@ async function sendPaginatedEmbed(interaction, targetType, targetId, currentPage
   if (interaction.replied || interaction.deferred) {
     await interaction.editReply({ embeds: [embed], components: [row] });
   } else {
-    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
+    await interaction.reply({ embeds: [embed], components: [row] });
   }
 }
 
@@ -372,7 +373,6 @@ async function pointHistory(db, targetType, targetId) {
       query = `SELECT * FROM point_history WHERE house = ? ORDER BY timestamp`;
     } else {
       reject(new Error('Invalid targetType'));
-      console.log(`${targetType}`);
       return;
     }
 
