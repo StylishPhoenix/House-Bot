@@ -242,9 +242,6 @@ function createTableIfNotExists(db) {
 
 function calculatePoints(userId, house, message) {
   const now = Date.now(); 
-  if (message.length < 10) {
-    return;
-  }
   const pointsPerMessage = [25, 20, 15, 10, 10, 5, 5, 5, 5];
 
   if (!userPointsData.hasOwnProperty(userId)) {
@@ -255,11 +252,12 @@ function calculatePoints(userId, house, message) {
       pointsScheduled: false,
     };
   }
-  const elapsedTime = now - userPointsData[userId].lastMessageTimestamp;
-  if (elapsedTime >= 3600000) { //The maximum point cap resets every hour.
+  if (message.length < 10) {
     userPointsData[userId].lastMessageTimestamp = now;
-    userPointsData[userId].messagesInCurrentInterval = 0;
-  } else if (elapsedTime < 60000) { //The minimum interval between messages.  If the user spams out a bunch, the system will update the time of their last message in order to prevent attempts to spam until they are rewarded.
+    return;
+  }
+  const elapsedTime = now - userPointsData[userId].lastMessageTimestamp;
+  if (elapsedTime < 30000) { //The minimum interval between messages.  If the user spams out a bunch, the system will update the time of their last message in order to prevent attempts to spam until they are rewarded.
     userPointsData[userId].lastMessageTimestamp = now;
     return;
   }
@@ -289,6 +287,7 @@ function scheduleAddPoints(userId, house) {
   setTimeout(() => {
     const earnedPoints = userPointsData[userId].points;
     userPointsData[userId].points = 0;
+    userPointsData[userId].messagesInCurrentInterval = 0;
     addPointsForUser(house, earnedPoints);
     logPoints(userId, house, earnedPoints, 'Chat Messages');
     userPointsData[userId].pointsScheduled = false;
