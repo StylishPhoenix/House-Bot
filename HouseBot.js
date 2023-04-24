@@ -94,7 +94,7 @@ const leaderboard = new SlashCommandBuilder()
     .addStringOption(option => option.setName('house')
            .setDescription('Enter the house name')
 	   .setRequired(true)
-	          .addChoices(...require('./houseChoicess.json'))
+	          .addChoices(...require('./houseChoices.json'))
     );
     
 const commands = [
