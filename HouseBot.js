@@ -145,7 +145,11 @@ client.on('interactionCreate', async interaction => {
 	}
     const userId = interaction.user.id;
     const { commandName } = interaction;
-    if (commandName === 'add_points') {
+    if (commandName === 'leaderboard'){
+        const house = interaction.options.getString('house');
+ // Call the displayLeaderboard function and display the leaderboard for the specified house
+        await displayLeaderboard(interaction, house);
+    } else if (commandName === 'add_points') {
         const house = interaction.options.getString('house');
         let points = interaction.options.getInteger('points');
             if (!house_points.hasOwnProperty(house)) {
@@ -226,6 +230,26 @@ function addPointsForUser(house, points) {
         house_points[house] += points;
         save_points();
     }
+}
+
+function getLeaderboardData(house) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT user_id, house, SUM(points) as points
+      FROM point_history
+      WHERE house = ?
+      GROUP BY user_id, house
+      ORDER BY points DESC
+    `;
+
+    db.all(query, [house], (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
 }
 
 async function logPoints(userId, house, points, reason) {
