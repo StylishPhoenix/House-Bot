@@ -88,13 +88,22 @@ const displayPointHistory = new SlashCommandBuilder()
 			.addChoices(...require('./houseChoices.json'))
         )
     );
-
+const leaderboard = new SlashCommandBuilder()
+    .setName('leaderboard')
+    .setDescription('Displays the leaderboard of contributed points per house')
+    .addStringOption(option => option.setName('house')
+           .setDescription('Enter the house name')
+	   .setRequired(true)
+	          .addChoices(...require('./houseChoicess.json'))
+    );
+    
 const commands = [
     addPoints.toJSON(),
     remove_points.toJSON(),
     show_points.toJSON(),
     add_point_amount.toJSON(),
     displayPointHistory.toJSON(), 
+    leaderboard.toJSON(),
     // Add other commands here
 ];
 
