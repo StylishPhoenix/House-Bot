@@ -140,6 +140,13 @@ client.on('interactionCreate', async interaction => {
     await interaction.deferUpdate();
     await interaction.editReply(paginatedEmbed);
 	
+  } else if (action === 'leaderboard'){
+    const newPage = direction === 'prev' ? parseInt(currentPage) - 1 : parseInt(currentPage) + 1;
+    const leaderboardUpdate = await displayLeaderboard(client, interaction, targetType, newPage);
+
+    await interaction.deferUpdate();
+    await interaction.editReply(leaderboardUpdate);
+	
   }
     return;
 	}
@@ -148,7 +155,7 @@ client.on('interactionCreate', async interaction => {
     if (commandName === 'leaderboard'){
         const house = interaction.options.getString('house');
  // Call the displayLeaderboard function and display the leaderboard for the specified house
-        await displayLeaderboard(interaction, house, client);
+        await displayLeaderboard(interaction, house, client, 0);
     } else if (commandName === 'add_points') {
         const house = interaction.options.getString('house');
         let points = interaction.options.getInteger('points');
@@ -253,16 +260,20 @@ async function logPoints(userId, house, points, reason) {
   db.prepare(`INSERT INTO point_history (user_id, house, points, reason, timestamp) VALUES (?, ?, ?, ?, ?)`).run(userId, house, points, reason, timestamp);
 }
 
-async function displayLeaderboard(interaction, house, client) {
+async function displayLeaderboard(interaction, house, client, currentPage) {
  try{
     // Retrieve the leaderboard data from the database
   const leaderboardData = await getLeaderboardData(house);
 
   // Sort the data in decreasing order of points contributed
   leaderboardData.sort((a, b) => b.points - a.points);
-  
+  const limit = 10;
+  const totalPages = Math.ceil(leaderboardData.length / limit);
+  const startIndex = currentPage * limit;
+  const footer = { text: `Page ${currentPage + 1} of ${totalPages}` };
   // Format the leaderboard data
   const splitLeaderboardPromises = leaderboardData
+    .slice(startIndex, startIndex + limit)
     .map(async (entry, index) => {
       const user = await client.users.fetch(entry.user_id);
       return `${index + 1}. User: ${user}, Points: ${entry.points}`;
@@ -274,7 +285,22 @@ async function displayLeaderboard(interaction, house, client) {
   const embed = new EmbedBuilder()
     .setColor('#0099ff')
     .setTitle(`${house} Leaderboard`)
-    .setDescription(formattedLeaderboard);
+    .setDescription(formattedLeaderboard)
+    .setFooter(footer);
+
+  const row = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(`leaderboard_prev_${currentPage}_${totalPages}_${house}_0_${userID}`)
+        .setLabel('Previous')
+        .setStyle('1')
+        .setDisabled(currentPage === 0),
+      new ButtonBuilder()
+        .setCustomId(`leaderboard_next_${currentPage}_${totalPages}_${house}_0_${userID}`)
+        .setLabel('Next')
+        .setStyle('1')
+        .setDisabled(currentPage === totalPages - 1)
+    );
 
   // Send the embed as a reply
   await interaction.reply({ embeds: [embed] });
