@@ -258,6 +258,30 @@ async function logPoints(userId, house, points, reason) {
   db.prepare(`INSERT INTO point_history (user_id, house, points, reason, timestamp) VALUES (?, ?, ?, ?, ?)`).run(userId, house, points, reason, timestamp);
 }
 
+async function displayLeaderboard(interaction, house) {
+  // Retrieve the leaderboard data from the database
+  const leaderboardData = await getLeaderboardData(house);
+
+  // Sort the data in decreasing order of points contributed
+  leaderboardData.sort((a, b) => b.points - a.points);
+
+  // Format the leaderboard data
+  const formattedLeaderboard = leaderboardData
+    .map((entry, index) => {
+      return `${index + 1}. User: ${entry.user_id}, Points: ${entry.points}`;
+    })
+    .join('\n');
+
+  // Create the embed
+  const embed = new EmbedBuilder()
+    .setColor('#0099ff')
+    .setTitle(`${house} Leaderboard`)
+    .setDescription(formattedLeaderboard);
+
+  // Send the embed as a reply
+  await interaction.reply({ embeds: [embed] });
+}
+
 function createTableIfNotExists(db) {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS point_history (
