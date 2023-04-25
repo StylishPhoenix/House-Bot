@@ -304,7 +304,7 @@ async function displayLeaderboard(interaction, house, client, currentPage) {
     );
 
   // Send the embed as a reply
-  await interaction.reply({ embeds: [embed] });
+  await interaction.reply({ embeds: [embed], components: [row] });
  // } catch {
  //   await interaction.reply("It doesn't appear that this house has history yet.");
 // }
