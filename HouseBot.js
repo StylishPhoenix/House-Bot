@@ -261,7 +261,7 @@ async function logPoints(userId, house, points, reason) {
 }
 
 async function displayLeaderboard(interaction, house, client, currentPage) {
- // try{
+  try{
     // Retrieve the leaderboard data from the database
   const leaderboardData = await getLeaderboardData(house);
 
@@ -305,9 +305,9 @@ async function displayLeaderboard(interaction, house, client, currentPage) {
 
   // Send the embed as a reply
   await interaction.reply({ embeds: [embed], components: [row] });
- // } catch {
- //   await interaction.reply("It doesn't appear that this house has history yet.");
-// }
+  } catch {
+    await interaction.reply("It doesn't appear that this house has history yet.");
+ }
 }
 
 function createTableIfNotExists(db) {
