@@ -281,7 +281,7 @@ async function displayLeaderboard(interaction, house, client, currentPage) {
     .slice(startIndex, startIndex + limit)
     .map(async (entry, index) => {
       const user = await client.users.fetch(entry.user_id);
-      return `${index + 1}. User: ${user}, Points: ${entry.points}`;
+      return `${index + 1 + startIndex}. User: ${user}, Points: ${entry.points}`;
     });
   const splitLeaderboard = await Promise.all(splitLeaderboardPromises);
   const formattedLeaderboard = splitLeaderboard.join('\n\n');
