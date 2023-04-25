@@ -263,7 +263,7 @@ async function displayLeaderboard(interaction, house, client) {
   
   // Format the leaderboard data
   const formattedLeaderboard = leaderboardData
-    .map((entry, index) => {
+    .map(async (entry, index) => {
       const user = await client.users.fetch(entry.user_id);
       return `${index + 1}. User: ${user}, Points: ${entry.points}`;
     })
