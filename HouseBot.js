@@ -262,11 +262,12 @@ async function displayLeaderboard(interaction, house, client) {
   leaderboardData.sort((a, b) => b.points - a.points);
   
   // Format the leaderboard data
-  const splitLeaderboard = leaderboardData
+  const splitLeaderboardPromises = leaderboardData
     .map(async (entry, index) => {
       const user = await client.users.fetch(entry.user_id);
       return `${index + 1}. User: ${user}, Points: ${entry.points}`;
     });
+  const splitLeaderboard = await Promise.all(splitLeaderboardPromises);
   const formattedLeaderboard = splitLeaderboard.join('\n\n');
 
   // Create the embed
