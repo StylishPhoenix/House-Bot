@@ -148,7 +148,7 @@ client.on('interactionCreate', async interaction => {
     if (commandName === 'leaderboard'){
         const house = interaction.options.getString('house');
  // Call the displayLeaderboard function and display the leaderboard for the specified house
-        await displayLeaderboard(interaction, house);
+        await displayLeaderboard(interaction, house, client);
     } else if (commandName === 'add_points') {
         const house = interaction.options.getString('house');
         let points = interaction.options.getInteger('points');
@@ -253,13 +253,14 @@ async function logPoints(userId, house, points, reason) {
   db.prepare(`INSERT INTO point_history (user_id, house, points, reason, timestamp) VALUES (?, ?, ?, ?, ?)`).run(userId, house, points, reason, timestamp);
 }
 
-async function displayLeaderboard(interaction, house) {
-  // Retrieve the leaderboard data from the database
+async function displayLeaderboard(interaction, house, client) {
+  try{
+    // Retrieve the leaderboard data from the database
   const leaderboardData = await getLeaderboardData(house);
 
   // Sort the data in decreasing order of points contributed
   leaderboardData.sort((a, b) => b.points - a.points);
-
+  const user = await client.users.fetch(entry.user_id);
   // Format the leaderboard data
   const formattedLeaderboard = leaderboardData
     .map((entry, index) => {
@@ -275,6 +276,9 @@ async function displayLeaderboard(interaction, house) {
 
   // Send the embed as a reply
   await interaction.reply({ embeds: [embed] });
+  } catch {
+    await interaction.reply("It doesn't appear that this house has history yet.");
+  }
 }
 
 function createTableIfNotExists(db) {
