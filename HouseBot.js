@@ -142,7 +142,7 @@ client.on('interactionCreate', async interaction => {
 	
   } else if (action === 'leaderboard'){
     const newPage = direction === 'prev' ? parseInt(currentPage) - 1 : parseInt(currentPage) + 1;
-    const leaderboardUpdate = await displayLeaderboard(client, interaction, targetType, newPage);
+    const leaderboardUpdate = await displayLeaderboard(client, interaction, targetId, newPage);
 
     await interaction.deferUpdate();
     await interaction.editReply(leaderboardUpdate);
@@ -296,12 +296,12 @@ async function displayLeaderboard(interaction, house, client, currentPage) {
   const row = new ActionRowBuilder()
     .addComponents(
       new ButtonBuilder()
-        .setCustomId(`leaderboard_prev_${currentPage}_${totalPages}_${house}_0_${userID}`)
+        .setCustomId(`leaderboard_prev_${currentPage}_${totalPages}_${house}_${house}_${userID}`)
         .setLabel('Previous')
         .setStyle('1')
         .setDisabled(currentPage === 0),
       new ButtonBuilder()
-        .setCustomId(`leaderboard_next_${currentPage}_${totalPages}_${house}_0_${userID}`)
+        .setCustomId(`leaderboard_next_${currentPage}_${totalPages}_${house}_${house}_${userID}`)
         .setLabel('Next')
         .setStyle('1')
         .setDisabled(currentPage === totalPages - 1)
