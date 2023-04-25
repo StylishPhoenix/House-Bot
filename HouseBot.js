@@ -260,11 +260,12 @@ async function displayLeaderboard(interaction, house, client) {
 
   // Sort the data in decreasing order of points contributed
   leaderboardData.sort((a, b) => b.points - a.points);
-  const user = await client.users.fetch(entry.user_id);
+  
   // Format the leaderboard data
   const formattedLeaderboard = leaderboardData
     .map((entry, index) => {
-      return `${index + 1}. User: ${entry.user_id}, Points: ${entry.points}`;
+      const user = await client.users.fetch(entry.user_id);
+      return `${index + 1}. User: ${user}, Points: ${entry.points}`;
     })
     .join('\n');
 
