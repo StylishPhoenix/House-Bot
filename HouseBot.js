@@ -271,7 +271,7 @@ async function displayLeaderboard(interaction, house, client, currentPage) {
   const totalPages = Math.ceil(leaderboardData.length / limit);
   const startIndex = currentPage * limit;
   const footer = { text: `Page ${currentPage + 1} of ${totalPages}` };
-  const userID = interaction.author.id;
+  const userID = interaction.user.id;
   // Format the leaderboard data
   const splitLeaderboardPromises = leaderboardData
     .slice(startIndex, startIndex + limit)
