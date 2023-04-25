@@ -233,24 +233,19 @@ function addPointsForUser(house, points) {
 }
 
 function getLeaderboardData(house) {
-  return new Promise((resolve, reject) => {
-    const query = `
-      SELECT user_id, house, SUM(points) as points
-      FROM point_history
-      WHERE house = ?
-      GROUP BY user_id, house
-      ORDER BY points DESC
-    `;
+  const query = `
+    SELECT user_id, house, SUM(points) as points
+    FROM point_history
+    WHERE house = ?
+    GROUP BY user_id, house
+    ORDER BY points DESC
+  `;
 
-    db.all(query, [house], (err, rows) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(rows);
-      }
-    });
-  });
+  const stmt = db.prepare(query);
+  const rows = stmt.all(house);
+  return rows;
 }
+
 
 async function logPoints(userId, house, points, reason) {
   const timestamp = Date.now();
