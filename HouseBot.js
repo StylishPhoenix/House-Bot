@@ -142,7 +142,7 @@ client.on('interactionCreate', async interaction => {
 	
   } else if (action === 'leaderboard'){
     const newPage = direction === 'prev' ? parseInt(currentPage) - 1 : parseInt(currentPage) + 1;
-    const leaderboardUpdate = await displayLeaderboard(client, interaction, targetId, newPage);
+    const leaderboardUpdate = await displayLeaderboard(interaction, house, client, currentPage);
 
     await interaction.deferUpdate();
     await interaction.editReply(leaderboardUpdate);
