@@ -12,6 +12,10 @@ Display the current points for each house
 
 Adds points based on how long a user is in a voice channel.
 
+Adds points based on the amount of messages a user sends within an hour, capped at 100.
+
+Displays point logs and a leaderboard for each house.
+
 # Installation
 Clone this repository with `git clone https://github.com/StylishPhoenix/House-Bot.git`
 
