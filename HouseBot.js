@@ -88,13 +88,22 @@ const displayPointHistory = new SlashCommandBuilder()
 			.addChoices(...require('./houseChoices.json'))
         )
     );
-
+const leaderboard = new SlashCommandBuilder()
+    .setName('leaderboard')
+    .setDescription('Displays the leaderboard of contributed points per house')
+    .addStringOption(option => option.setName('house')
+           .setDescription('Enter the house name')
+	   .setRequired(true)
+	          .addChoices(...require('./houseChoices.json'))
+    );
+    
 const commands = [
     addPoints.toJSON(),
     remove_points.toJSON(),
     show_points.toJSON(),
     add_point_amount.toJSON(),
     displayPointHistory.toJSON(), 
+    leaderboard.toJSON(),
     // Add other commands here
 ];
 
@@ -131,12 +140,28 @@ client.on('interactionCreate', async interaction => {
     await interaction.deferUpdate();
     await interaction.editReply(paginatedEmbed);
 	
+  } else if (action === 'leaderboard'){
+    const newPage = direction === 'prev' ? parseInt(currentPage) - 1 : parseInt(currentPage) + 1;
+    const leaderboardUpdate = await displayLeaderboard(interaction, targetId, client, newPage);
+
+    await interaction.deferUpdate();
+    await interaction.editReply(leaderboardUpdate);
+	
   }
     return;
 	}
     const userId = interaction.user.id;
     const { commandName } = interaction;
-    if (commandName === 'add_points') {
+    if (commandName === 'leaderboard'){
+        const house = interaction.options.getString('house');
+ // Call the displayLeaderboard function and display the leaderboard for the specified house
+        try{
+          const showLeaderboard = await displayLeaderboard(interaction, house, client, 0);
+          await interaction.reply(showLeaderboard);
+        }catch{
+          await interaction.reply("It doesn't appear that this house has history yet.");
+      }
+    } else if (commandName === 'add_points') {
         const house = interaction.options.getString('house');
         let points = interaction.options.getInteger('points');
             if (!house_points.hasOwnProperty(house)) {
@@ -219,10 +244,71 @@ function addPointsForUser(house, points) {
     }
 }
 
+function getLeaderboardData(house) {
+  const query = `
+    SELECT user_id, house, SUM(points) as points
+    FROM point_history
+    WHERE house = ?
+    GROUP BY user_id, house
+    ORDER BY points DESC
+  `;
+
+  const stmt = db.prepare(query);
+  const rows = stmt.all(house);
+  return rows;
+}
+
+
 async function logPoints(userId, house, points, reason) {
   const timestamp = Date.now();
   if (points == 0) return;
   db.prepare(`INSERT INTO point_history (user_id, house, points, reason, timestamp) VALUES (?, ?, ?, ?, ?)`).run(userId, house, points, reason, timestamp);
+}
+
+async function displayLeaderboard(interaction, house, client, currentPage) {
+    // Retrieve the leaderboard data from the database
+  const leaderboardData = await getLeaderboardData(house);
+
+  // Sort the data in decreasing order of points contributed
+  leaderboardData.sort((a, b) => b.points - a.points);
+  const limit = 10;
+  const totalPages = Math.ceil(leaderboardData.length / limit);
+  const startIndex = currentPage * limit;
+  const footer = { text: `Page ${currentPage + 1} of ${totalPages}` };
+  const userID = interaction.user.id;
+  // Format the leaderboard data
+  const splitLeaderboardPromises = leaderboardData
+    .slice(startIndex, startIndex + limit)
+    .map(async (entry, index) => {
+      const user = await client.users.fetch(entry.user_id);
+      return `${index + 1 + startIndex}. User: ${user}, Points: ${entry.points}`;
+    });
+  const splitLeaderboard = await Promise.all(splitLeaderboardPromises);
+  const formattedLeaderboard = splitLeaderboard.join('\n\n');
+
+  // Create the embed
+  const embed = new EmbedBuilder()
+    .setColor('#0099ff')
+    .setTitle(`${house} Leaderboard`)
+    .setDescription(formattedLeaderboard)
+    .setFooter(footer);
+
+  const row = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(`leaderboard_prev_${currentPage}_${totalPages}_${house}_${house}_${userID}`)
+        .setLabel('Previous')
+        .setStyle('1')
+        .setDisabled(currentPage === 0),
+      new ButtonBuilder()
+        .setCustomId(`leaderboard_next_${currentPage}_${totalPages}_${house}_${house}_${userID}`)
+        .setLabel('Next')
+        .setStyle('1')
+        .setDisabled(currentPage === totalPages - 1)
+    );
+
+  // Send the embed as a reply
+  return { embeds: [embed], components: [row] };
 }
 
 function createTableIfNotExists(db) {
