@@ -51,5 +51,7 @@ Available slash commands:
 
 `/point_history`: Displays a embed that contains 10 entries of a house or user's point history.  Using the arrow buttons will allow you to scroll through the list.
 
+`/leaderboard`: Displays an embed that contains 10 entries of a house's leaderboard, sorted by descending point value.  Using the arrow buttons will allow you to scroll through the list.
+
 # Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
