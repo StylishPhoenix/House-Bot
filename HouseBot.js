@@ -222,7 +222,9 @@ client.on('interactionCreate', async interaction => {
 
     if (subcommand === 'user') {
       targetType = 'user';
-      targetId = interaction.options.getString('user');
+      const userInput = interaction.options.getString('user');
+      const userId = userInput.match(/<@!?(\d+)>/) ? userInput.match(/<@!?(\d+)>/)[1] : userInput;
+      targetId = userId;
     } else if (subcommand === 'house') {
       targetType = 'house';
       targetId = interaction.options.getString('house');
