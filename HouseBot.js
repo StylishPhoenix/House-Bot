@@ -64,11 +64,11 @@ const add_point_amount = new SlashCommandBuilder()
     )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
+    .addStringOption(option => option.setName("reasoning").setDescription("Put Reason here").setRequired(true))
     .addStringOption(option => option.setName('user')
 		     .setDescription('Adding points for another user?  Enter their username here')
 		     .setRequired(false)
     )
-    .addStringOption(option => option.setName("reasoning").setDescription("Put Reason here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
 
