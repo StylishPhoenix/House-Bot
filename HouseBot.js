@@ -32,6 +32,10 @@ const addPoints = new SlashCommandBuilder()
         .setRequired(true)
         .addChoices(...require('./pointChoices.json'))
     )
+    .addStringOption(option => option.setName('User')
+		     .setDescription('Adding points for another user?  Enter their username here')
+		     .setRequired(false)
+    )
     .setDMPermission(false);
 
 const remove_points = new SlashCommandBuilder()
@@ -60,6 +64,10 @@ const add_point_amount = new SlashCommandBuilder()
     )
 
     .addIntegerOption(option => option.setName("points").setDescription("Points here").setRequired(true))
+    .addStringOption(option => option.setName('User')
+		     .setDescription('Adding points for another user?  Enter their username here')
+		     .setRequired(false)
+    )
     .addStringOption(option => option.setName("reasoning").setDescription("Put Reason here").setRequired(true))
     .setDMPermission(false)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers);
@@ -164,6 +172,8 @@ client.on('interactionCreate', async interaction => {
     } else if (commandName === 'add_points') {
         const house = interaction.options.getString('house');
         let points = interaction.options.getInteger('points');
+	const user = interaction.options.getString('User');
+	console.log(User);
             if (!house_points.hasOwnProperty(house)) {
         await interaction.reply(`Invalid house name: ${house}`);
         return;
