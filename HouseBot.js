@@ -202,7 +202,7 @@ client.on('interactionCreate', async interaction => {
 
     house_points[house] -= points;
     await interaction.reply(`${points} points removed from ${house}.`);
-    await logPoints(userId, house, points, removePointsReason);
+    await logPoints(userId, house, -points, removePointsReason);
     save_points();
 } else if (commandName === 'add_point_amount') {
     const house = interaction.options.getString('house');
